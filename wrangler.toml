@@ -1,0 +1,16 @@
+name = "run-planner"
+main = "src/index.ts"
+compatibility_date = "2025-12-01"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+[[durable_objects.bindings]]
+name = "SCHEDULED_RUN"
+class_name = "ScheduledRun"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ScheduledRun"]

@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Cloudflare Workers
+.wrangler/
+dist/
+
+# Python (legacy)
+__pycache__/
+*.py[oc]
+*.egg-info
+.venv
+
+# Environment
+.env
+.dev.vars
