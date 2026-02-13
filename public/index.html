@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Fair Weather — Best Time to Run or Walk Outside</title>
 <meta name="description" content="Find your perfect window for outdoor running and walking based on real-time weather scoring. Hourly forecasts scored for temperature, wind, humidity, UV, and rain.">
 <link rel="canonical" href="https://fair-weather.query-farm.services/">
@@ -61,6 +61,10 @@
   --timeline-line: #475569;
 }
 
+html {
+  background: #0f172a;
+}
+
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background: radial-gradient(ellipse at 50% 0%, #1e293b 0%, #0f172a 50%);
@@ -68,6 +72,10 @@ body {
   color: var(--text);
   line-height: 1.5;
   min-height: 100vh;
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .container {
