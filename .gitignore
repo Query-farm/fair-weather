@@ -1,16 +1,23 @@
 # Dependencies
 node_modules/
 
-# Cloudflare Workers
-.wrangler/
+# Build output
 dist/
+.wrangler/
 
-# Python (legacy)
-__pycache__/
-*.py[oc]
-*.egg-info
-.venv
-
-# Environment
+# Environment files
 .env
+.env.local
+.env.production
 .dev.vars
+
+# OS files
+.DS_Store
+
+# Screenshots & Playwright artifacts
+*.png
+!public/*.png
+.playwright-mcp/
+
+# Logs
+*.log
