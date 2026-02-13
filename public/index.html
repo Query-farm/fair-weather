@@ -1874,7 +1874,7 @@ function setupCountdown() {
 
   // Subtract activity duration — you need to START this far before the drop
   const durationMs = activeDuration * 60 * 1000;
-  countdownTarget = dropTime ? dropTime - durationMs : null;
+  const startByTarget = dropTime ? dropTime - durationMs : null;
   countdownRating = dropRating;
 
   const banner = document.getElementById('countdown-banner');
@@ -1904,22 +1904,32 @@ function setupCountdown() {
     `<span class="alert-badge${a.severe ? '' : ' alert-warning'}">${a.icon} ${a.text}</span>`
   ).join('');
 
-  if (!countdownTarget || countdownTarget <= nowTime) {
-    if (!dropTime) {
-      document.getElementById('countdown-text').textContent = '\u2713';
-      document.getElementById('countdown-label').textContent = `Conditions stay ${curr.rating.toLowerCase()} through the forecast`;
-    } else {
-      document.getElementById('countdown-text').textContent = '0:00:00';
-      document.getElementById('countdown-label').textContent = `not enough time for a ${durLabel} ${modeLabel} session before conditions drop`;
-    }
+  if (!dropTime) {
+    // No drop in the forecast — conditions stay the same
+    countdownTarget = null;
+    document.getElementById('countdown-text').textContent = '\u2713';
+    document.getElementById('countdown-label').textContent = `Conditions stay ${curr.rating.toLowerCase()} through the forecast`;
     if (countdownInterval) clearInterval(countdownInterval);
     return;
   }
 
-  document.getElementById('countdown-label').textContent = `to start a ${durLabel} ${modeLabel} session before conditions drop to ${countdownRating.toLowerCase()}`;
-  if (countdownInterval) clearInterval(countdownInterval);
-  tickCountdown();
-  countdownInterval = setInterval(tickCountdown, 1000);
+  if (startByTarget && startByTarget > nowTime) {
+    // Enough time for full session — countdown to start-by time
+    countdownTarget = startByTarget;
+    document.getElementById('countdown-label').textContent = `to start your ${durLabel} ${modeLabel} before conditions drop to ${countdownRating.toLowerCase()}`;
+    if (countdownInterval) clearInterval(countdownInterval);
+    tickCountdown();
+    countdownInterval = setInterval(tickCountdown, 1000);
+  } else {
+    // Not enough time for full session — countdown to the drop itself
+    const remainMs = dropTime - nowTime;
+    const remainMin = Math.floor(remainMs / 60000);
+    countdownTarget = dropTime;
+    document.getElementById('countdown-label').textContent = `of ${curr.rating.toLowerCase()} conditions left \u2014 not enough for ${durLabel}, but you could do ${remainMin}min`;
+    if (countdownInterval) clearInterval(countdownInterval);
+    tickCountdown();
+    countdownInterval = setInterval(tickCountdown, 1000);
+  }
 }
 
 function tickCountdown() {
