@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Run Planner</title>
+<title>Fair Weather</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -30,7 +30,8 @@
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: var(--bg);
+  background: radial-gradient(ellipse at 50% 0%, #1e293b 0%, #0f172a 50%);
+  background-attachment: fixed;
   color: var(--text);
   line-height: 1.5;
   min-height: 100vh;
@@ -47,9 +48,29 @@ header {
   margin-bottom: 20px;
 }
 header h1 {
-  font-size: 1.5rem;
+  font-size: 2.2rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #60a5fa 0%, #34d399 50%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 18px rgba(59,130,246,0.25));
+  line-height: 1.2;
+}
+.logo-icon {
+  display: block;
+  margin: 0 auto 4px;
+  filter: drop-shadow(0 0 12px rgba(59,130,246,0.3));
+}
+.tagline {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  margin-top: 4px;
+  text-transform: uppercase;
+  font-weight: 500;
+  font-size: 0.65rem;
 }
 /* Location pill */
 .location-pill {
@@ -310,6 +331,17 @@ header h1 {
   color: var(--text-dim);
   margin-bottom: 8px;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.countdown-banner .current-score .score-ring {
+  width: 32px;
+  height: 32px;
+}
+.countdown-banner .current-score .score-ring-value {
+  font-size: 0.7rem;
 }
 .countdown-banner .countdown-text {
   font-size: 2rem;
@@ -405,6 +437,26 @@ header h1 {
 .hour-entry.twilight { opacity: 0.75; }
 .hour-entry.past-hour { opacity: 0.45; }
 
+/* Compact past hour rows */
+.hour-entry.past-hour-compact { opacity: 0.45; margin-bottom: 2px; }
+.hour-entry.past-hour-compact .hour-card {
+  padding: 6px 12px;
+  box-shadow: none;
+}
+.hour-entry.past-hour-compact .hour-card-header {
+  margin-bottom: 0;
+}
+.hour-entry.past-hour-compact .score-ring {
+  width: 28px;
+  height: 28px;
+}
+.hour-entry.past-hour-compact .score-ring-value {
+  font-size: 0.65rem;
+}
+.hour-entry.past-hour-compact .hour-time {
+  padding-top: 8px;
+}
+
 .hour-dot {
   position: absolute;
   left: 10px;
@@ -427,16 +479,21 @@ header h1 {
 
 .hour-card {
   flex: 1;
-  background: var(--surface);
+  background: rgba(30, 41, 59, 0.8);
   border: 1px solid var(--border);
   border-left: 3px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 10px 14px;
   margin-bottom: 4px;
-  transition: background 0.15s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
   position: relative;
 }
-.hour-card:hover { background: var(--surface-hover); }
+.hour-card:hover {
+  background: var(--surface-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
 
 .hour-card-header {
   display: flex;
@@ -538,19 +595,21 @@ header h1 {
   margin: 0 0 2px 0;
 }
 .narrative p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.72rem;
-  font-style: italic;
+  font-style: normal;
   color: var(--text-dim);
   padding-left: 52px;
-  position: relative;
+  padding-right: 8px;
 }
-.narrative p::before {
-  content: '\2195';
-  position: absolute;
-  left: 28px;
-  color: var(--text-dim);
-  font-style: normal;
-  font-size: 0.7rem;
+.narrative p::before,
+.narrative p::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border), transparent);
 }
 
 .rating-excellent { color: var(--green); }
@@ -818,7 +877,30 @@ header h1 {
 <body>
 <div class="container">
   <header>
-    <h1>Run Planner</h1>
+    <svg class="logo-icon" width="44" height="44" viewBox="0 0 44 44" fill="none">
+      <circle cx="22" cy="22" r="10" fill="url(#logoGrad)" opacity="0.9"/>
+      <g stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round">
+        <line x1="22" y1="4" x2="22" y2="9"/>
+        <line x1="22" y1="35" x2="22" y2="40"/>
+        <line x1="4" y1="22" x2="9" y2="22"/>
+        <line x1="35" y1="22" x2="40" y2="22"/>
+        <line x1="9.3" y1="9.3" x2="12.9" y2="12.9"/>
+        <line x1="31.1" y1="31.1" x2="34.7" y2="34.7"/>
+        <line x1="9.3" y1="34.7" x2="12.9" y2="31.1"/>
+        <line x1="31.1" y1="12.9" x2="34.7" y2="9.3"/>
+      </g>
+      <path d="M28 28 Q34 24 40 27" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+      <path d="M26 32 Q33 28 42 31" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+      <defs>
+        <linearGradient id="logoGrad" x1="0" y1="0" x2="44" y2="44">
+          <stop offset="0%" stop-color="#60a5fa"/>
+          <stop offset="50%" stop-color="#34d399"/>
+          <stop offset="100%" stop-color="#a78bfa"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <h1>Fair Weather</h1>
+    <p class="tagline">Find your perfect window</p>
     <div class="location-pill" id="location-display" onclick="toggleLocationSearch()">
       <svg class="location-pin-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
@@ -925,7 +1007,7 @@ let TZ = location_.tz;
 
 function updateLocationDisplay() {
   document.getElementById('location-name').textContent = location_.name;
-  document.title = `Run Planner — ${location_.name}`;
+  document.title = `Fair Weather — ${location_.name}`;
 }
 updateLocationDisplay();
 
@@ -1244,7 +1326,7 @@ function generateICSBlob(title, startISO, durationMin, description, locationStr)
   const uid = crypto.randomUUID() + '@run-planner';
   const now = fmtDate(new Date().toISOString());
   const lines = [
-    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Run Planner//EN',
+    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Fair Weather//EN',
     'CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT',
     'UID:' + uid, 'DTSTAMP:' + now,
     'DTSTART:' + fmtDate(startISO),
@@ -1488,19 +1570,21 @@ function ratingHex(r) {
   return { Excellent:'#22c55e', Good:'#3b82f6', Fair:'#f59e0b', Poor:'#ef4444' }[r] || '#64748b';
 }
 
-function scoreRingSVG(score, rating) {
-  const r = 18, circ = 2 * Math.PI * r;
+function scoreRingSVG(score, rating, size) {
+  const sz = size || 40;
+  const r = sz * 0.45, circ = 2 * Math.PI * r;
   const offset = circ - (circ * score / 100);
   const hex = ratingHex(rating);
   const rc = ratingClass(rating);
   const rounded = Math.round(score);
-  return `<div class="score-ring">
-    <svg viewBox="0 0 40 40" width="40" height="40">
-      <circle cx="20" cy="20" r="${r}" fill="none" stroke="#334155" stroke-width="3.5"/>
-      <circle class="score-ring-arc" cx="20" cy="20" r="${r}" fill="none"
-        stroke="${hex}" stroke-width="3.5" stroke-linecap="round"
+  const sw = sz <= 28 ? 2.5 : 3.5;
+  return `<div class="score-ring" ${sz !== 40 ? `style="width:${sz}px;height:${sz}px"` : ''}>
+    <svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}">
+      <circle cx="${sz/2}" cy="${sz/2}" r="${r.toFixed(1)}" fill="none" stroke="#334155" stroke-width="${sw}"/>
+      <circle class="score-ring-arc" cx="${sz/2}" cy="${sz/2}" r="${r.toFixed(1)}" fill="none"
+        stroke="${hex}" stroke-width="${sw}" stroke-linecap="round"
         stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"
-        transform="rotate(-90 20 20)"/>
+        transform="rotate(-90 ${sz/2} ${sz/2})"/>
     </svg>
     <span class="score-ring-value ${rc}">${rounded}</span>
   </div>`;
@@ -1645,6 +1729,12 @@ function renderTimeline() {
     html += '</div></div>';
   }
   root.innerHTML = html;
+
+  // Auto-scroll to current hour
+  requestAnimationFrame(() => {
+    const nowEl = document.querySelector('.current-hour');
+    if (nowEl) nowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
 }
 
 function sunMarkerHTML(label, iso) {
@@ -1654,16 +1744,29 @@ function sunMarkerHTML(label, iso) {
 function hourEntryHTML(h) {
   const rc = ratingClass(h.rating);
   const emoji = WEATHER_EMOJI[h.weather_code] || '\uD83C\uDF21';
+
+  // Compact past hours: single-line summary
+  if (h._isPast) {
+    return `<div class="hour-entry past-hour-compact">
+      <div class="hour-dot ${rc}-dot"></div>
+      <div class="hour-time ${rc}">${formatTime(h.time)}</div>
+      <div class="hour-card ${rc}-border">
+        <div class="hour-card-header">
+          ${scoreRingSVG(h.score, h.rating, 28)}
+          <span class="hour-rating ${rc}-bg">${h.rating}</span>
+          <span class="hour-emoji">${emoji}</span>
+          <span class="hour-weather-desc">${Math.round(h.feels_like)}\u00B0F \u00B7 ${h.weather_description}</span>
+        </div>
+      </div>
+    </div>`;
+  }
+
   let dim = '';
-  if (h._isPast) dim = ' past-hour';
-  else if (h._isCurrent) dim = ' current-hour';
+  if (h._isCurrent) dim = ' current-hour';
   else if (h.daylight_factor <= 0.3) dim = ' dark';
   else if (h.daylight_factor <= 0.6) dim = ' twilight';
 
-  const isFuture = !h._isPast;
-  const schedBtn = isFuture
-    ? `<button class="schedule-btn" onclick="event.stopPropagation();openScheduleModal('${h.time}',${h.score},'${h.rating}')">\uD83D\uDCC5 Add to Calendar</button>`
-    : '';
+  const schedBtn = `<button class="schedule-btn" onclick="event.stopPropagation();openScheduleModal('${h.time}',${h.score},'${h.rating}')">\uD83D\uDCC5 Add to Calendar</button>`;
 
   // AQI badge — only show if unhealthy (>100)
   const aqi = h.aqi > 100 ? aqiLabel(h.aqi) : null;
@@ -1750,7 +1853,7 @@ function setupCountdown() {
   document.getElementById('current-rating').innerHTML = `Currently <strong class="${rc}">${curr.rating}</strong> for ${modeLabel}`;
   const aqiInfo = curr.aqi > 100 ? aqiLabel(curr.aqi) : null;
   const aqiText = aqiInfo ? ` \u00B7 AQI ${curr.aqi} (${aqiInfo.text})` : '';
-  document.getElementById('current-score').textContent = `Score: ${curr.score}/100 \u00B7 ${curr.weather_description} \u00B7 Feels like ${curr.feels_like}\u00B0F${aqiText}`;
+  document.getElementById('current-score').innerHTML = `${scoreRingSVG(curr.score, curr.rating, 32)}<span>${curr.weather_description} \u00B7 Feels like ${curr.feels_like}\u00B0F${aqiText}</span>`;
 
   // Show alerts in countdown banner
   const currentAlerts = getWeatherAlerts(curr);
