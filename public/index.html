@@ -1148,10 +1148,12 @@ document.getElementById('btn-running').classList.toggle('active', activeMode ===
 document.getElementById('btn-walking').classList.toggle('active', activeMode === 'walking');
 
 // ── Duration ───────────────────────────────────────────────────────
-let activeDuration = 30;
+let activeDuration = parseInt(localStorage.getItem('rp_duration'), 10) || 30;
+document.getElementById('duration-select').value = activeDuration;
 
 function setDuration(val) {
   activeDuration = parseInt(val, 10);
+  localStorage.setItem('rp_duration', activeDuration);
   if (timelineData) setupCountdown();
 }
 
