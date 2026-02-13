@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://fair-weather.query-farm.services/sitemap.xml
