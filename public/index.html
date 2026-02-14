@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Fair Weather — Best Time to Run, Walk, or Ride Outside</title>
-<meta name="description" content="Find your perfect window for outdoor running, walking, and cycling based on real-time weather scoring. Hourly forecasts scored for temperature, wind, humidity, UV, and rain.">
+<title>Fair Weather — Best Time to Run, Walk, Ride, or Stargaze Outside</title>
+<meta name="description" content="Find your perfect window for outdoor running, walking, cycling, and stargazing based on real-time weather scoring. Hourly forecasts scored for temperature, wind, humidity, UV, rain, and cloud cover.">
 <link rel="canonical" href="https://fair-weather.query-farm.services/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://fair-weather.query-farm.services/">
 <meta property="og:title" content="Fair Weather">
-<meta property="og:description" content="Find your perfect window for outdoor running, walking, and cycling.">
+<meta property="og:description" content="Find your perfect window for outdoor running, walking, cycling, and stargazing.">
 <meta property="og:image" content="https://fair-weather.query-farm.services/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Fair Weather">
-<meta name="twitter:description" content="Find your perfect window for outdoor running, walking, and cycling.">
+<meta name="twitter:description" content="Find your perfect window for outdoor running, walking, cycling, and stargazing.">
 <meta name="twitter:image" content="https://fair-weather.query-farm.services/og-image.png">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -31,7 +31,7 @@
   "@type": "WebApplication",
   "name": "Fair Weather",
   "url": "https://fair-weather.query-farm.services/",
-  "description": "Find your perfect window for outdoor running, walking, and cycling based on real-time weather scoring.",
+  "description": "Find your perfect window for outdoor running, walking, cycling, and stargazing based on real-time weather scoring.",
   "applicationCategory": "WeatherApplication",
   "operatingSystem": "Any",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
@@ -934,6 +934,136 @@ header h1 {
 .traffic-moderate { background: rgba(245,158,11,0.15); color: #f59e0b; }
 .traffic-heavy { background: rgba(249,115,22,0.15); color: #f97316; }
 .traffic-rush { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+/* Stargazing mode — inverted dimming */
+body.mode-stargazing .hour-entry.dark { opacity: 1; }
+body.mode-stargazing .hour-entry.twilight { opacity: 0.75; }
+body.mode-stargazing .hour-entry:not(.dark):not(.twilight):not(.past-hour-compact):not(.current-hour) { opacity: 0.4; }
+
+/* Moon marker */
+.moon-marker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 6px 0 6px 36px;
+  gap: 8px;
+}
+.moon-marker::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #c0c0c0;
+  border: 2px solid var(--bg);
+  z-index: 2;
+}
+.moon-marker .moon-text {
+  font-size: 0.75rem;
+  color: #c0c0c0;
+  font-weight: 500;
+}
+.moon-marker .moon-time {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+/* Tonight's Sky panel */
+.sky-panel {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  background: rgba(30, 41, 59, 0.6);
+}
+.sky-panel-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.sky-panel-moon {
+  font-size: 0.82rem;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.planet-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.planet-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(34,197,94,0.12);
+  color: #22c55e;
+  line-height: 1;
+}
+.planet-chip .planet-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font-size: 13px;
+  line-height: 1;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.planet-chip.dim {
+  background: rgba(100,116,139,0.12);
+  color: var(--text-dim);
+  font-weight: 500;
+}
+.planet-chip .chip-times {
+  font-weight: 400;
+  font-size: 0.65rem;
+  opacity: 0.8;
+}
+
+/* Planet timeline markers */
+.planet-marker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 6px 0 6px 36px;
+  gap: 8px;
+}
+.planet-marker::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #f59e0b;
+  border: 2px solid var(--bg);
+  z-index: 2;
+}
+.planet-marker .planet-text {
+  font-size: 0.75rem;
+  color: #f59e0b;
+  font-weight: 500;
+}
+.planet-marker .planet-time {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+@media (max-width: 480px) {
+  .mode-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
 </style>
 </head>
 <body>
@@ -997,6 +1127,7 @@ header h1 {
       <button class="mode-btn active" id="btn-running" onclick="setMode('running')">&#x1F3C3; Running</button>
       <button class="mode-btn" id="btn-walking" onclick="setMode('walking')">&#x1F6B6; Walking</button>
       <button class="mode-btn" id="btn-cycling" onclick="setMode('cycling')">&#x1F6B4; Cycling</button>
+      <button class="mode-btn" id="btn-stargazing" onclick="setMode('stargazing')">&#x1F52D; Stargazing</button>
     </div>
     <div class="duration-group">
       <span class="duration-label">Duration</span>
@@ -1017,6 +1148,8 @@ header h1 {
     <div class="countdown-text" id="countdown-text">--:--:--</div>
     <div class="countdown-label" id="countdown-label"></div>
   </div>
+
+  <div id="sky-panel" class="sky-panel" style="display:none"></div>
 
   <div id="timeline-root">
     <div class="loading">
@@ -1165,12 +1298,16 @@ function setMode(mode) {
   document.getElementById('btn-running').classList.toggle('active', mode === 'running');
   document.getElementById('btn-walking').classList.toggle('active', mode === 'walking');
   document.getElementById('btn-cycling').classList.toggle('active', mode === 'cycling');
+  document.getElementById('btn-stargazing').classList.toggle('active', mode === 'stargazing');
+  document.body.classList.toggle('mode-stargazing', mode === 'stargazing');
   if (rawHourlyData) processAndRender();
 }
 // Apply saved mode to toggle buttons on load
 document.getElementById('btn-running').classList.toggle('active', activeMode === 'running');
 document.getElementById('btn-walking').classList.toggle('active', activeMode === 'walking');
 document.getElementById('btn-cycling').classList.toggle('active', activeMode === 'cycling');
+document.getElementById('btn-stargazing').classList.toggle('active', activeMode === 'stargazing');
+document.body.classList.toggle('mode-stargazing', activeMode === 'stargazing');
 
 // ── Duration ───────────────────────────────────────────────────────
 let activeDuration = parseInt(localStorage.getItem('rp_duration'), 10) || 30;
@@ -1203,6 +1340,228 @@ const WMO_DESC = {
   85:'Slight snow showers',86:'Heavy snow showers',
   95:'Thunderstorm',96:'Thunderstorm w/ hail',99:'Thunderstorm w/ heavy hail'
 };
+
+// ── Moon phase ─────────────────────────────────────────────────────
+function getMoonPhaseEmoji(dateISO) {
+  const d = new Date(dateISO);
+  // Known new moon: Jan 6, 2000 18:14 UTC
+  const knownNew = new Date('2000-01-06T18:14:00Z').getTime();
+  const cycle = 29.53058770576;
+  const days = (d.getTime() - knownNew) / 86400000;
+  const phase = ((days % cycle) + cycle) % cycle;
+  const i = Math.round(phase / cycle * 8) % 8;
+  return ['\uD83C\uDF11','\uD83C\uDF12','\uD83C\uDF13','\uD83C\uDF14','\uD83C\uDF15','\uD83C\uDF16','\uD83C\uDF17','\uD83C\uDF18'][i];
+}
+
+function getMoonPhaseInfo(dateISO) {
+  const d = new Date(dateISO);
+  const knownNew = new Date('2000-01-06T18:14:00Z').getTime();
+  const cycle = 29.53058770576;
+  const days = (d.getTime() - knownNew) / 86400000;
+  const phase = ((days % cycle) + cycle) % cycle;
+  const frac = phase / cycle; // 0=new, 0.5=full
+  const i = Math.round(frac * 8) % 8;
+  const emoji = ['\uD83C\uDF11','\uD83C\uDF12','\uD83C\uDF13','\uD83C\uDF14','\uD83C\uDF15','\uD83C\uDF16','\uD83C\uDF17','\uD83C\uDF18'][i];
+  const names = ['New Moon','Waxing Crescent','First Quarter','Waxing Gibbous','Full Moon','Waning Gibbous','Last Quarter','Waning Crescent'];
+  const name = names[i];
+  // Illumination from cosine of phase angle
+  const illumination = Math.round(50 * (1 - Math.cos(2 * Math.PI * frac)));
+  return { emoji, name, illumination };
+}
+
+// ── Moonrise/Moonset (simplified lunar position) ────────────────────
+function getMoonPosition(date, lat, lon) {
+  // Simplified lunar position using mean elements (Meeus, Astronomical Algorithms)
+  const J2000 = 2451545.0;
+  const jd = date.getTime() / 86400000 + 2440587.5;
+  const T = (jd - J2000) / 36525;
+
+  // Moon mean longitude, anomaly, elongation, argument of latitude
+  const L0 = (218.3165 + 481267.8813 * T) % 360;
+  const M = (134.9634 + 477198.8676 * T) % 360;
+  const D = (297.8502 + 445267.1115 * T) % 360;
+  const F = (93.2720 + 483202.0175 * T) % 360;
+
+  const rad = Math.PI / 180;
+
+  // Ecliptic longitude (simplified)
+  let ecLon = L0
+    + 6.289 * Math.sin(M * rad)
+    + 1.274 * Math.sin((2*D - M) * rad)
+    + 0.658 * Math.sin(2*D * rad)
+    + 0.214 * Math.sin(2*M * rad)
+    - 0.186 * Math.sin((M - 2*D + 2*F) * rad);
+  ecLon = ((ecLon % 360) + 360) % 360;
+
+  // Ecliptic latitude (simplified)
+  const ecLat = 5.128 * Math.sin(F * rad)
+    + 0.281 * Math.sin((M + F) * rad)
+    + 0.278 * Math.sin((2*D - F) * rad);
+
+  // Obliquity of ecliptic
+  const obliq = 23.4393 - 0.0130 * T;
+
+  // Ecliptic to equatorial
+  const sinDec = Math.sin(ecLat * rad) * Math.cos(obliq * rad)
+    + Math.cos(ecLat * rad) * Math.sin(obliq * rad) * Math.sin(ecLon * rad);
+  const dec = Math.asin(sinDec); // radians
+
+  const cosRA = Math.cos(ecLon * rad) * Math.cos(ecLat * rad);
+  const sinRA = Math.sin(ecLon * rad) * Math.cos(ecLat * rad) * Math.cos(obliq * rad)
+    - Math.sin(ecLat * rad) * Math.sin(obliq * rad);
+  let ra = Math.atan2(sinRA, cosRA); // radians
+
+  // Local sidereal time
+  const GMST = (280.46061837 + 360.98564736629 * (jd - J2000)) % 360;
+  const LST = ((GMST + lon) % 360 + 360) % 360;
+
+  // Hour angle
+  const ha = (LST * rad) - ra;
+
+  // Altitude
+  const sinAlt = Math.sin(lat * rad) * Math.sin(dec) + Math.cos(lat * rad) * Math.cos(dec) * Math.cos(ha);
+  const alt = Math.asin(sinAlt) / rad;
+
+  return alt; // degrees above horizon
+}
+
+function computeMoonRiseSet(dateStr, lat, lon) {
+  // Scan the day at 30-min intervals, detect horizon crossings
+  const events = [];
+  const baseDate = new Date(dateStr + 'T00:00:00');
+  let prevAlt = getMoonPosition(baseDate, lat, lon);
+
+  for (let m = 30; m <= 24 * 60; m += 30) {
+    const d = new Date(baseDate.getTime() + m * 60000);
+    const alt = getMoonPosition(d, lat, lon);
+
+    if (prevAlt <= 0 && alt > 0) {
+      // Rise: interpolate
+      const frac = -prevAlt / (alt - prevAlt);
+      const riseTime = new Date(baseDate.getTime() + (m - 30 + frac * 30) * 60000);
+      events.push({ type: 'moonrise', time: riseTime.toISOString() });
+    } else if (prevAlt > 0 && alt <= 0) {
+      // Set: interpolate
+      const frac = prevAlt / (prevAlt - alt);
+      const setTime = new Date(baseDate.getTime() + (m - 30 + frac * 30) * 60000);
+      events.push({ type: 'moonset', time: setTime.toISOString() });
+    }
+    prevAlt = alt;
+  }
+  return events;
+}
+
+// ── Planetary Visibility (Keplerian elements + rise/set) ────────────
+const PLANETS = [
+  { name: 'Mercury', emoji: '\u263F', L0: 252.25, rate: 149472.67, a: 0.387, i: 7.00, minElong: 18 },
+  { name: 'Venus', emoji: '\u2640', L0: 181.98, rate: 58517.82, a: 0.723, i: 3.39, minElong: 15 },
+  { name: 'Mars', emoji: '\u2642', L0: 355.43, rate: 19140.30, a: 1.524, i: 1.85, minElong: 15 },
+  { name: 'Jupiter', emoji: '\u2643', L0: 34.35, rate: 3034.91, a: 5.203, i: 1.30, minElong: 15 },
+  { name: 'Saturn', emoji: '\u2644', L0: 50.08, rate: 1222.11, a: 9.537, i: 2.49, minElong: 15 },
+];
+
+function getPlanetAltitude(date, planet, lat, lon) {
+  const rad = Math.PI / 180;
+  const J2000 = 2451545.0;
+  const jd = date.getTime() / 86400000 + 2440587.5;
+  const T = (jd - J2000) / 36525;
+
+  // Planet heliocentric ecliptic coords (simplified circular with inclination)
+  const pL = ((planet.L0 + planet.rate * T) % 360 + 360) % 360;
+  const xH = planet.a * Math.cos(pL * rad);
+  const yH = planet.a * Math.sin(pL * rad) * Math.cos(planet.i * rad);
+  const zH = planet.a * Math.sin(pL * rad) * Math.sin(planet.i * rad);
+
+  // Earth heliocentric (ecliptic plane)
+  const eL = ((100.46 + 35999.37 * T) % 360 + 360) % 360;
+  const xE = Math.cos(eL * rad);
+  const yE = Math.sin(eL * rad);
+
+  // Geocentric ecliptic
+  const xG = xH - xE, yG = yH - yE, zG = zH;
+
+  // Ecliptic to equatorial
+  const obliq = 23.4393 * rad;
+  const yEq = yG * Math.cos(obliq) - zG * Math.sin(obliq);
+  const zEq = yG * Math.sin(obliq) + zG * Math.cos(obliq);
+
+  // RA and Dec
+  const ra = Math.atan2(yEq, xG);
+  const dec = Math.atan2(zEq, Math.sqrt(xG * xG + yEq * yEq));
+
+  // Local sidereal time
+  const GMST = (280.46061837 + 360.98564736629 * (jd - J2000)) % 360;
+  const LST = ((GMST + lon) % 360 + 360) % 360;
+  const ha = LST * rad - ra;
+
+  // Altitude
+  const sinAlt = Math.sin(lat * rad) * Math.sin(dec) + Math.cos(lat * rad) * Math.cos(dec) * Math.cos(ha);
+  return Math.asin(sinAlt) / rad;
+}
+
+function computePlanetRiseSet(dateStr, lat, lon) {
+  const events = [];
+  const baseDate = new Date(dateStr + 'T00:00:00');
+
+  for (const planet of PLANETS) {
+    let prevAlt = getPlanetAltitude(baseDate, planet, lat, lon);
+    for (let m = 30; m <= 24 * 60; m += 30) {
+      const d = new Date(baseDate.getTime() + m * 60000);
+      const alt = getPlanetAltitude(d, planet, lat, lon);
+      if (prevAlt <= 0 && alt > 0) {
+        const frac = -prevAlt / (alt - prevAlt);
+        const riseTime = new Date(baseDate.getTime() + (m - 30 + frac * 30) * 60000);
+        events.push({ type: 'rise', planet: planet.name, emoji: planet.emoji, time: riseTime.toISOString() });
+      } else if (prevAlt > 0 && alt <= 0) {
+        const frac = prevAlt / (prevAlt - alt);
+        const setTime = new Date(baseDate.getTime() + (m - 30 + frac * 30) * 60000);
+        events.push({ type: 'set', planet: planet.name, emoji: planet.emoji, time: setTime.toISOString() });
+      }
+      prevAlt = alt;
+    }
+  }
+  // Sort by time
+  events.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+  return events;
+}
+
+function getVisiblePlanets(dateISO, lat, lon) {
+  const d = new Date(dateISO);
+  const J2000 = 2451545.0;
+  const jd = d.getTime() / 86400000 + 2440587.5;
+  const T = (jd - J2000) / 36525;
+  const rad = Math.PI / 180;
+
+  const earthL = ((100.46 + 35999.37 * T) % 360 + 360) % 360;
+  const dateStr = dateISO.slice(0, 10);
+
+  // Compute rise/set events for today
+  const allEvents = computePlanetRiseSet(dateStr, lat, lon);
+
+  const results = [];
+  for (const p of PLANETS) {
+    const pL = ((p.L0 + p.rate * T) % 360 + 360) % 360;
+    let elong = Math.abs(pL - earthL);
+    if (elong > 180) elong = 360 - elong;
+    const visible = elong >= p.minElong;
+
+    // Find this planet's rise/set events
+    const riseEvt = allEvents.find(e => e.planet === p.name && e.type === 'rise');
+    const setEvt = allEvents.find(e => e.planet === p.name && e.type === 'set');
+
+    results.push({
+      name: p.name, emoji: p.emoji, visible, elongation: Math.round(elong),
+      rise: riseEvt ? riseEvt.time : null,
+      set: setEvt ? setEvt.time : null,
+    });
+  }
+  return results;
+}
+
+function getWeatherEmoji(weatherCode, isDaylight, timeISO) {
+  if (!isDaylight && (weatherCode === 0 || weatherCode === 1)) return getMoonPhaseEmoji(timeISO);
+  return WEATHER_EMOJI[weatherCode] || '\uD83C\uDF21';
+}
 
 // ── Scoring ────────────────────────────────────────────────────────
 function clamp(v, lo=0, hi=100) { return Math.max(lo, Math.min(hi, v)); }
@@ -1242,10 +1601,27 @@ const WEATHER_CODE_SCORES_CYCLING = {
   61:15,63:8,65:3,66:0,67:0,71:20,73:8,75:0,77:10,
   80:15,81:8,82:3,85:10,86:2,95:3,96:0,99:0
 };
+const scoreTempStargazing = v => clamp(interpolate(v, [[0,0],[15,10],[25,30],[35,60],[45,90],[55,100],[65,100],[75,85],[85,50],[95,20],[105,0]]));
+const scoreWindStargazing = v => clamp(interpolate(v, [[0,100],[5,100],[10,85],[15,60],[20,35],[25,15],[35,0]]));
+const scoreHumidityStargazing = v => clamp(interpolate(v, [[0,100],[30,100],[50,90],[60,70],[70,50],[80,25],[90,10],[100,0]]));
+const scoreCloudCover = v => clamp(interpolate(v, [[0,100],[10,95],[20,80],[30,60],[50,35],[70,15],[85,5],[100,0]]));
+const scoreVisibility = v => clamp(interpolate(v, [[1000,0],[5000,30],[10000,60],[20000,85],[40000,100],[100000,100]]));
+
+const WEATHER_CODE_SCORES_STARGAZING = {
+  0:100,1:90,2:60,3:20,45:5,48:5,
+  51:5,53:2,55:0,56:0,57:0,
+  61:2,63:0,65:0,66:0,67:0,
+  71:5,73:2,75:0,77:2,
+  80:5,81:2,82:0,85:2,86:0,
+  95:0,96:0,99:0
+};
+
 const scoreWeatherCode = c => WEATHER_CODE_SCORES[c] ?? 50;
 const scoreWeatherCodeCycling = c => WEATHER_CODE_SCORES_CYCLING[c] ?? 50;
+const scoreWeatherCodeStargazing = c => WEATHER_CODE_SCORES_STARGAZING[c] ?? 50;
 
 const WEIGHTS = {temperature:0.25,feels_like:0.20,humidity:0.15,uv_index:0.10,wind_speed:0.10,precipitation_probability:0.10,weather_code:0.10};
+const WEIGHTS_STARGAZING = {cloud_cover:0.35,weather_code:0.15,temperature:0.15,wind_speed:0.10,humidity:0.10,precipitation_probability:0.10,visibility:0.05};
 
 // ── Traffic heuristic (cycling only) ────────────────────────────────
 function getTrafficPenalty(hourISO) {
@@ -1275,6 +1651,25 @@ function trafficLabel(penalty) {
 }
 
 function computeScore(h, mode) {
+  if (mode === 'stargazing') {
+    const sub = {
+      cloud_cover: scoreCloudCover(h.cloud_cover ?? 50),
+      weather_code: scoreWeatherCodeStargazing(h.weather_code),
+      temperature: scoreTempStargazing(h.temperature),
+      wind_speed: scoreWindStargazing(h.wind_speed),
+      humidity: scoreHumidityStargazing(h.humidity),
+      precipitation_probability: scorePrecip(h.precipitation_probability),
+      visibility: scoreVisibility(h.visibility ?? 20000),
+    };
+    let composite = 0;
+    for (const k of Object.keys(WEIGHTS_STARGAZING)) composite += sub[k] * WEIGHTS_STARGAZING[k];
+    composite *= h.daylight_factor;
+    composite = Math.round(composite * 10) / 10;
+    const rating = composite >= 80 ? 'Excellent' : composite >= 65 ? 'Good' : composite >= 45 ? 'Fair' : 'Poor';
+    const clothing = getClothing(h.feels_like, h.wind_speed, h.precipitation_probability, h.weather_code, mode, h.humidity);
+    return { ...h, sub_scores: sub, score: composite, rating, weather_description: WMO_DESC[h.weather_code] || 'Unknown', clothing, trafficPenalty: 0 };
+  }
+
   const scoreTemp = mode === 'cycling' ? scoreTempCycling : mode === 'running' ? scoreTempRunning : scoreTempWalking;
   const scoreWind = mode === 'cycling' ? scoreWindCycling : mode === 'running' ? scoreWindRunning : scoreWindWalking;
   const precipFn = mode === 'cycling' ? scorePrecipCycling : scorePrecip;
@@ -1308,12 +1703,12 @@ function computeScore(h, mode) {
     }
   }
   const rating = composite >= 80 ? 'Excellent' : composite >= 65 ? 'Good' : composite >= 45 ? 'Fair' : 'Poor';
-  const clothing = getClothing(h.feels_like, h.wind_speed, h.precipitation_probability, h.weather_code, mode);
+  const clothing = getClothing(h.feels_like, h.wind_speed, h.precipitation_probability, h.weather_code, mode, h.humidity);
   return { ...h, sub_scores: sub, score: composite, rating, weather_description: WMO_DESC[h.weather_code] || 'Unknown', clothing, trafficPenalty: trafficPen };
 }
 
 // ── Clothing recommendations ───────────────────────────────────────
-function getClothing(feelsLike, wind, precipProb, weatherCode, mode) {
+function getClothing(feelsLike, wind, precipProb, weatherCode, mode, humidity) {
   const isWet = precipProb > 30 || [51,53,55,56,57,61,63,65,66,67,80,81,82].includes(weatherCode);
   const isSnowy = [71,73,75,77,85,86].includes(weatherCode);
   const isCold = feelsLike < 20;
@@ -1341,6 +1736,17 @@ function getClothing(feelsLike, wind, precipProb, weatherCode, mode) {
     if (isWet) layers.push('rain jacket');
     if (isSnowy && !isCold) layers.push('waterproof shell');
     if (wind > 20) layers.push('windbreaker');
+  } else if (mode === 'stargazing') {
+    if (feelsLike < 15) { layers = ['Heavy winter coat','thermal base layers','insulated gloves','hat','scarf','hand warmers']; icon = '\uD83E\uDDE5'; }
+    else if (feelsLike < 25) { layers = ['Heavy coat','fleece layer','warm gloves','hat','scarf']; icon = '\uD83E\uDDE5'; }
+    else if (feelsLike < 40) { layers = ['Warm jacket','sweater','gloves','hat']; icon = '\uD83E\uDDE5'; }
+    else if (feelsLike < 50) { layers = ['Medium jacket','light sweater','light gloves']; icon = '\uD83E\uDDE4'; }
+    else if (feelsLike < 60) { layers = ['Light jacket or fleece']; icon = '\uD83E\uDDE4'; }
+    else if (feelsLike < 70) { layers = ['Light layer']; icon = '\uD83D\uDC55'; }
+    else { layers = ['Comfortable clothes']; icon = '\uD83E\uDE73'; }
+    if (isWet) layers.push('rain jacket');
+    if (wind > 10) layers.push('windbreaker');
+    if (humidity > 80) layers.push('lens cloth for dew');
   } else {
     if (feelsLike < 10) { layers = ['Heavy winter coat','insulated layers','insulated gloves','hat','scarf']; icon = '\uD83E\uDDE5'; }
     else if (feelsLike < 20) { layers = ['Heavy winter coat','fleece mid-layer','warm gloves','hat']; icon = '\uD83E\uDDE5'; }
@@ -1422,6 +1828,17 @@ function getWeatherAlerts(h, mode) {
   // Poor AQI
   if (h.aqi != null && h.aqi > 150)
     alerts.push({ icon: '\uD83C\uDF2B\uFE0F', text: `Unhealthy air`, severe: h.aqi > 200 });
+  // Stargazing-specific alerts
+  if (mode === 'stargazing') {
+    const cc = h.cloud_cover ?? 50;
+    if (cc >= 90) alerts.push({ icon: '\u2601\uFE0F', text: `Heavy cloud cover ${cc}%`, severe: true });
+    else if (cc >= 70) alerts.push({ icon: '\u2601\uFE0F', text: `Heavy cloud cover ${cc}%`, severe: false });
+    if ([45, 48].includes(h.weather_code))
+      alerts.push({ icon: '\uD83C\uDF2B\uFE0F', text: 'Fog obscures sky', severe: true });
+    const moonInfo = getMoonPhaseInfo(h.time);
+    if (moonInfo.illumination >= 75)
+      alerts.push({ icon: moonInfo.emoji, text: `Bright moon (${moonInfo.illumination}%) may wash out faint objects`, severe: false });
+  }
   return alerts;
 }
 
@@ -1442,6 +1859,20 @@ function computeDaylight(hourISO, dailyList) {
   return { is_daylight: false, daylight_factor: 0.3 };
 }
 
+function computeDarkness(hourISO, dailyList) {
+  const hdt = new Date(hourISO);
+  const dateStr = hourISO.slice(0, 10);
+  const day = dailyList.find(d => d.date === dateStr);
+  if (!day) return { is_daylight: false, daylight_factor: 0.05 };
+  const sr = new Date(day.sunrise), ss = new Date(day.sunset);
+  const twilight = 30 * 60 * 1000;
+  const ht = hdt.getTime(), srT = sr.getTime(), ssT = ss.getTime();
+  if (ht > ssT + twilight || ht < srT - twilight) return { is_daylight: false, daylight_factor: 1.0 };
+  if ((ht >= ssT && ht <= ssT + twilight) || (ht >= srT - twilight && ht <= srT)) return { is_daylight: false, daylight_factor: 0.3 };
+  if ((ht >= srT && ht <= srT + twilight) || (ht >= ssT - twilight && ht <= ssT)) return { is_daylight: true, daylight_factor: 0.3 };
+  return { is_daylight: true, daylight_factor: 0.05 };
+}
+
 // ── Narrative ──────────────────────────────────────────────────────
 function buildNarrative(prev, curr) {
   const parts = [];
@@ -1455,8 +1886,17 @@ function buildNarrative(prev, curr) {
   if (Math.abs(wd) >= 5) parts.push(`Wind ${wd > 0 ? 'picking up' : 'calming down'} to ${Math.round(curr.wind_speed)} mph`);
   const pd = curr.precipitation_probability - prev.precipitation_probability;
   if (Math.abs(pd) >= 20) parts.push(pd > 0 ? `Rain chance rises to ${curr.precipitation_probability}%` : `Rain chance drops to ${curr.precipitation_probability}%`);
-  if (prev.is_daylight && !curr.is_daylight) parts.push('Darkness falls');
-  else if (!prev.is_daylight && curr.is_daylight) parts.push('Daylight arrives');
+  if (activeMode === 'stargazing') {
+    if (prev.is_daylight && !curr.is_daylight) parts.push('Night begins \u2014 stargazing time');
+    else if (!prev.is_daylight && curr.is_daylight) parts.push('Dawn approaching');
+    const prevCC = prev.cloud_cover ?? 50, currCC = curr.cloud_cover ?? 50;
+    if (Math.abs(currCC - prevCC) >= 15) {
+      parts.push(currCC > prevCC ? `Clouds increasing to ${currCC}%` : `Skies clearing to ${currCC}% clouds`);
+    }
+  } else {
+    if (prev.is_daylight && !curr.is_daylight) parts.push('Darkness falls');
+    else if (!prev.is_daylight && curr.is_daylight) parts.push('Daylight arrives');
+  }
   return parts.length ? parts.join('. ') : null;
 }
 
@@ -1516,7 +1956,7 @@ function getSelectedScheduleTime() {
 
 function updateScheduleModalInfo() {
   if (!scheduleTarget) return;
-  const activity = activeMode === 'running' ? 'Run' : activeMode === 'cycling' ? 'Ride' : 'Walk';
+  const activity = activeMode === 'running' ? 'Run' : activeMode === 'cycling' ? 'Ride' : activeMode === 'stargazing' ? 'Star Gaze' : 'Walk';
   const d = new Date(getSelectedScheduleTime());
   const timeStr = d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
   document.getElementById('schedule-modal-info').innerHTML =
@@ -1529,16 +1969,40 @@ function onScheduleTimeChange() {
 }
 
 function buildTimeSlots(dateStr) {
-  // Generate half-hour slots from 6:00 AM to 10:00 PM for the given date
   const slots = [];
-  for (let h = 6; h <= 22; h++) {
-    for (let m = 0; m < 60; m += 30) {
-      if (h === 22 && m > 0) break; // stop at 10:00 PM
-      const d = new Date(dateStr + 'T00:00:00');
-      d.setHours(h, m, 0, 0);
-      // Skip slots in the past
-      if (d.getTime() <= Date.now()) continue;
-      slots.push({ iso: d.toISOString(), label: fmtSlotLabel(d) });
+  if (activeMode === 'stargazing') {
+    // Stargazing: 6 PM to 5 AM (crossing midnight)
+    for (let h = 18; h <= 23; h++) {
+      for (let m = 0; m < 60; m += 30) {
+        const d = new Date(dateStr + 'T00:00:00');
+        d.setHours(h, m, 0, 0);
+        if (d.getTime() <= Date.now()) continue;
+        slots.push({ iso: d.toISOString(), label: fmtSlotLabel(d) });
+      }
+    }
+    // Next day 0-5 AM
+    const nextDay = new Date(dateStr + 'T00:00:00');
+    nextDay.setDate(nextDay.getDate() + 1);
+    for (let h = 0; h <= 5; h++) {
+      for (let m = 0; m < 60; m += 30) {
+        if (h === 5 && m > 0) break;
+        const d = new Date(nextDay);
+        d.setHours(h, m, 0, 0);
+        if (d.getTime() <= Date.now()) continue;
+        slots.push({ iso: d.toISOString(), label: fmtSlotLabel(d) });
+      }
+    }
+  } else {
+    // Generate half-hour slots from 6:00 AM to 10:00 PM for the given date
+    for (let h = 6; h <= 22; h++) {
+      for (let m = 0; m < 60; m += 30) {
+        if (h === 22 && m > 0) break; // stop at 10:00 PM
+        const d = new Date(dateStr + 'T00:00:00');
+        d.setHours(h, m, 0, 0);
+        // Skip slots in the past
+        if (d.getTime() <= Date.now()) continue;
+        slots.push({ iso: d.toISOString(), label: fmtSlotLabel(d) });
+      }
     }
   }
   return slots;
@@ -1590,7 +2054,7 @@ async function confirmSchedule() {
 
   const scheduledTime = getSelectedScheduleTime();
 
-  const activity = activeMode === 'running' ? 'Run' : activeMode === 'cycling' ? 'Ride' : 'Walk';
+  const activity = activeMode === 'running' ? 'Run' : activeMode === 'cycling' ? 'Ride' : activeMode === 'stargazing' ? 'Star Gaze' : 'Walk';
   const title = `${activity} \u2014 ${location_.name}`;
   const desc = `Score: ${scheduleTarget.score}/100 (${scheduleTarget.rating})`;
 
@@ -1641,7 +2105,7 @@ let countdownInterval = null;
 // ── Fetch ──────────────────────────────────────────────────────────
 async function fetchTimeline() {
   try {
-    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&timezone=${encodeURIComponent(TZ)}&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,uv_index,precipitation_probability&daily=sunrise,sunset&forecast_days=${FORECAST_DAYS}&temperature_unit=fahrenheit&wind_speed_unit=mph`;
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&timezone=${encodeURIComponent(TZ)}&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,uv_index,precipitation_probability,cloud_cover,visibility&daily=sunrise,sunset&forecast_days=${FORECAST_DAYS}&temperature_unit=fahrenheit&wind_speed_unit=mph`;
     const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&timezone=${encodeURIComponent(TZ)}&hourly=us_aqi&forecast_days=${FORECAST_DAYS}`;
 
     const [weatherResp, aqiResp] = await Promise.all([
@@ -1670,7 +2134,9 @@ async function fetchTimeline() {
 
     const hourly = raw.hourly;
     rawHourlyData = hourly.time.map((t, i) => {
-      const dl = computeDaylight(t, dailyData);
+      const dl = activeMode === 'stargazing'
+        ? computeDarkness(t, dailyData)
+        : computeDaylight(t, dailyData);
       return {
         time: t,
         temperature: hourly.temperature_2m[i],
@@ -1680,6 +2146,8 @@ async function fetchTimeline() {
         wind_speed: hourly.wind_speed_10m[i],
         uv_index: hourly.uv_index[i],
         precipitation_probability: hourly.precipitation_probability[i],
+        cloud_cover: hourly.cloud_cover ? hourly.cloud_cover[i] : 50,
+        visibility: hourly.visibility ? hourly.visibility[i] : 20000,
         aqi: aqiMap[t] ?? null,
         ...dl
       };
@@ -1698,7 +2166,14 @@ function processAndRender() {
   const nowMs = Date.now();
   const cutoff = nowMs - HISTORY_HOURS * 3600000;
   const filtered = rawHourlyData.filter(h => new Date(h.time).getTime() >= cutoff);
-  let hours = filtered.map(h => computeScore(h, activeMode));
+  // Re-compute daylight/darkness factors based on current mode
+  const withDL = filtered.map(h => {
+    const dl = activeMode === 'stargazing'
+      ? computeDarkness(h.time, dailyData)
+      : computeDaylight(h.time, dailyData);
+    return { ...h, ...dl };
+  });
+  let hours = withDL.map(h => computeScore(h, activeMode));
   hours.forEach(h => {
     const hTime = new Date(h.time).getTime();
     h._isPast = hTime + 3600000 <= nowMs;
@@ -1817,7 +2292,7 @@ function dayStripHTML(summary) {
     const widthPct = (bestLen / segs.length * 100).toFixed(1);
     const startHour = segs[bestStart].hour;
     const endHour = segs[bestStart + bestLen - 1].hour + 1;
-    const fmtH = h => { const ap = h >= 12 ? 'PM' : 'AM'; return `${h % 12 || 12} ${ap}`; };
+    const fmtH = h => { h = h % 24; const ap = h >= 12 ? 'PM' : 'AM'; return `${h % 12 || 12} ${ap}`; };
     html += `<div class="strip-best">`;
     html += `<div class="strip-best-line" style="left:${startPct}%;width:${widthPct}%"></div>`;
     html += `<span class="strip-best-label" style="left:${startPct}%">Best ${fmtH(startHour)}\u2013${fmtH(endHour)}</span>`;
@@ -1842,6 +2317,32 @@ function renderTimeline() {
   const sunLookup = {};
   for (const d of daily) sunLookup[d.date] = d;
 
+  // Render sky panel for stargazing mode
+  const skyPanel = document.getElementById('sky-panel');
+  if (activeMode === 'stargazing') {
+    const now = new Date();
+    const nowISO = now.toISOString();
+    const moonInfo = getMoonPhaseInfo(nowISO);
+    const planets = getVisiblePlanets(nowISO, LAT, LON);
+    let skyHTML = `<div class="sky-panel-title">Tonight's Sky</div>`;
+    skyHTML += `<div class="sky-panel-moon">${moonInfo.emoji} ${moonInfo.name} &mdash; ${moonInfo.illumination}% illuminated</div>`;
+    skyHTML += `<div class="planet-chips">`;
+    const nowMs = now.getTime();
+    for (const p of planets) {
+      if (!p.visible) continue; // skip planets with insufficient elongation
+      const alt = getPlanetAltitude(now, PLANETS.find(pl => pl.name === p.name), LAT, LON);
+      const isUp = alt > 0;
+      const risesLater = !isUp && p.rise && new Date(p.rise).getTime() > nowMs;
+      if (!isUp && !risesLater) continue; // already set or won't rise — hide
+      skyHTML += `<span class="planet-chip${risesLater ? ' dim' : ''}">${p.name}</span>`;
+    }
+    skyHTML += `</div>`;
+    skyPanel.innerHTML = skyHTML;
+    skyPanel.style.display = '';
+  } else {
+    skyPanel.style.display = 'none';
+  }
+
   let html = '';
   for (const date of groupOrder) {
     const dayHours = groups[date];
@@ -1849,28 +2350,42 @@ function renderTimeline() {
     const stripSummary = computeDaySummary(dayHours);
     html += `<div class="day-group"><div class="day-label">${getDayLabel(date)}</div>${dayStripHTML(stripSummary)}<div class="timeline"><div class="timeline-line"></div>`;
 
-    let sunriseInserted = false, sunsetInserted = false;
+    // Collect all celestial events for this day, then sort by time
+    const celestialEvents = [];
+    if (sun) {
+      celestialEvents.push({ time: new Date(sun.sunrise).getTime(), iso: sun.sunrise, render: () => sunMarkerHTML('Sunrise', sun.sunrise) });
+      celestialEvents.push({ time: new Date(sun.sunset).getTime(), iso: sun.sunset, render: () => sunMarkerHTML('Sunset', sun.sunset) });
+    }
+    if (activeMode === 'stargazing') {
+      for (const m of computeMoonRiseSet(date, LAT, LON)) {
+        celestialEvents.push({ time: new Date(m.time).getTime(), iso: m.time, render: () => moonMarkerHTML(m.type, m.time) });
+      }
+      for (const p of computePlanetRiseSet(date, LAT, LON)) {
+        celestialEvents.push({ time: new Date(p.time).getTime(), iso: p.time, render: () => planetMarkerHTML(p) });
+      }
+    }
+    celestialEvents.sort((a, b) => a.time - b.time);
 
+    const firstHourTime = new Date(dayHours[0].time).getTime();
     for (let i = 0; i < dayHours.length; i++) {
       const h = dayHours[i];
       const hTime = new Date(h.time).getTime();
       const nextTime = (i + 1 < dayHours.length) ? new Date(dayHours[i+1].time).getTime() : Infinity;
 
-      if (sun && !sunriseInserted) {
-        const srT = new Date(sun.sunrise).getTime();
-        if (srT >= hTime - 3600000 && srT <= hTime) { html += sunMarkerHTML('Sunrise', sun.sunrise); sunriseInserted = true; }
+      // Insert events that fall just before this hour (within the previous hour gap, for sunrise before first entry)
+      if (i === 0) {
+        for (const ev of celestialEvents) {
+          if (ev.time >= hTime - 3600000 && ev.time <= hTime) { html += ev.render(); ev._inserted = true; }
+        }
       }
 
       if (h.narrative) html += `<div class="narrative"><p>${h.narrative}</p></div>`;
       html += hourEntryHTML(h);
 
-      if (sun && !sunriseInserted) {
-        const srT = new Date(sun.sunrise).getTime();
-        if (srT > hTime && srT <= nextTime) { html += sunMarkerHTML('Sunrise', sun.sunrise); sunriseInserted = true; }
-      }
-      if (sun && !sunsetInserted) {
-        const ssT = new Date(sun.sunset).getTime();
-        if (ssT > hTime && ssT <= nextTime) { html += sunMarkerHTML('Sunset', sun.sunset); sunsetInserted = true; }
+      // Insert all events between this hour and the next, sorted by time
+      for (const ev of celestialEvents) {
+        if (ev._inserted) continue;
+        if (ev.time > hTime && ev.time <= nextTime) { html += ev.render(); ev._inserted = true; }
       }
     }
     html += '</div></div>';
@@ -1883,9 +2398,18 @@ function sunMarkerHTML(label, iso) {
   const icon = label === 'Sunrise' ? '\u2600\uFE0F' : '\uD83C\uDF05';
   return `<div class="sun-marker"><span class="sun-text">${icon} ${label}</span><span class="sun-time">${formatSunTime(iso)}</span></div>`;
 }
+function moonMarkerHTML(type, iso) {
+  const icon = type === 'moonrise' ? '\uD83C\uDF19' : '\uD83C\uDF11';
+  const label = type === 'moonrise' ? 'Moonrise' : 'Moonset';
+  return `<div class="moon-marker"><span class="moon-text">${icon} ${label}</span><span class="moon-time">${formatSunTime(iso)}</span></div>`;
+}
+function planetMarkerHTML(event) {
+  const label = event.type === 'rise' ? `${event.planet} rises` : `${event.planet} sets`;
+  return `<div class="planet-marker"><span class="planet-text">${label}</span><span class="planet-time">${formatSunTime(event.time)}</span></div>`;
+}
 function hourEntryHTML(h) {
   const rc = ratingClass(h.rating);
-  const emoji = WEATHER_EMOJI[h.weather_code] || '\uD83C\uDF21';
+  const emoji = getWeatherEmoji(h.weather_code, h.is_daylight, h.time);
 
   // Compact past hours: single-line summary
   if (h._isPast) {
@@ -1947,6 +2471,9 @@ function hourEntryHTML(h) {
         <span class="detail-item"><span class="detail-icon">\uD83D\uDCA8</span> ${h.wind_speed} mph</span>
         ${h.precipitation_probability > 0 ? `<span class="detail-item"><span class="detail-icon">\uD83C\uDF27</span> ${h.precipitation_probability}%</span>` : ''}
         ${h.is_daylight ? `<span class="detail-item"><span class="detail-icon">\u2600\uFE0F</span> UV ${h.uv_index}</span>` : ''}
+        ${activeMode === 'stargazing' ? `<span class="detail-item"><span class="detail-icon">\u2601\uFE0F</span> ${h.cloud_cover ?? 50}% clouds</span>` : ''}
+        ${activeMode === 'stargazing' ? `<span class="detail-item"><span class="detail-icon">\uD83D\uDC41</span> ${((h.visibility ?? 20000) / 1000).toFixed(0)}km vis</span>` : ''}
+        ${activeMode === 'stargazing' && !h.is_daylight ? (() => { const mi = getMoonPhaseInfo(h.time); return `<span class="detail-item">${mi.emoji} ${mi.name} ${mi.illumination}%</span>`; })() : ''}
         ${aqiBadge}
         ${trafficBadge}
       </div>${alertsHTML}
@@ -1994,15 +2521,20 @@ function setupCountdown() {
   banner.style.display = 'block';
   banner.className = 'countdown-banner cb-' + curr.rating.toLowerCase();
   const rc = ratingClass(curr.rating);
-  const modeEmoji = activeMode === 'running' ? '\uD83C\uDFC3' : activeMode === 'cycling' ? '\uD83D\uDEB4' : '\uD83D\uDEB6';
-  const modeLabel = activeMode === 'running' ? 'running' : activeMode === 'cycling' ? 'cycling' : 'walking';
+  const modeEmoji = activeMode === 'running' ? '\uD83C\uDFC3' : activeMode === 'cycling' ? '\uD83D\uDEB4' : activeMode === 'stargazing' ? '\uD83D\uDD2D' : '\uD83D\uDEB6';
+  const modeLabel = activeMode === 'running' ? 'running' : activeMode === 'cycling' ? 'cycling' : activeMode === 'stargazing' ? 'stargazing' : 'walking';
   const durLabel = activeDuration >= 60 ? `${activeDuration / 60}hr` : `${activeDuration}min`;
-  const weatherEmoji = WEATHER_EMOJI[curr.weather_code] || '\uD83C\uDF21';
+  const weatherEmoji = getWeatherEmoji(curr.weather_code, curr.is_daylight, curr.time);
   document.getElementById('cb-emoji').textContent = `${modeEmoji} ${weatherEmoji}`;
   document.getElementById('current-rating').innerHTML = `Currently <strong class="${rc}">${curr.rating}</strong> for ${modeLabel}`;
   const aqiInfo = curr.aqi > 100 ? aqiLabel(curr.aqi) : null;
   const aqiText = aqiInfo ? ` \u00B7 AQI ${curr.aqi} (${aqiInfo.text})` : '';
-  document.getElementById('current-score').innerHTML = `${scoreRingSVG(curr.score, curr.rating, 32)}<span>${curr.weather_description} \u00B7 Feels like ${curr.feels_like}\u00B0F${aqiText}</span>`;
+  let moonBannerText = '';
+  if (activeMode === 'stargazing') {
+    const moonInfo = getMoonPhaseInfo(curr.time);
+    moonBannerText = ` \u00B7 ${moonInfo.emoji} ${moonInfo.name} ${moonInfo.illumination}%`;
+  }
+  document.getElementById('current-score').innerHTML = `${scoreRingSVG(curr.score, curr.rating, 32)}<span>${curr.weather_description} \u00B7 Feels like ${curr.feels_like}\u00B0F${aqiText}${moonBannerText}</span>`;
 
   // Show alerts in countdown banner
   const currentAlerts = getWeatherAlerts(curr, activeMode);

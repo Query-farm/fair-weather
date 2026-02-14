@@ -11,6 +11,8 @@ export interface HourlyData {
   precipitation_probability: number;
   is_daylight: boolean;
   daylight_factor: number;
+  cloud_cover?: number;
+  visibility?: number;
 }
 
 export interface ScoredHour extends HourlyData {
@@ -18,7 +20,7 @@ export interface ScoredHour extends HourlyData {
   rating: 'Excellent' | 'Good' | 'Fair' | 'Poor';
 }
 
-export type Mode = 'running' | 'walking' | 'cycling';
+export type Mode = 'running' | 'walking' | 'cycling' | 'stargazing';
 
 function clamp(v: number, lo = 0, hi = 100): number {
   return Math.max(lo, Math.min(hi, v));
@@ -67,6 +69,21 @@ const scorePrecip = (v: number) =>
 const scorePrecipCycling = (v: number) =>
   clamp(interpolate(v, [[0, 100], [5, 100], [20, 70], [40, 35], [60, 15], [80, 5], [100, 0]]));
 
+const scoreTempStargazing = (v: number) =>
+  clamp(interpolate(v, [[0, 0], [15, 10], [25, 30], [35, 60], [45, 90], [55, 100], [65, 100], [75, 85], [85, 50], [95, 20], [105, 0]]));
+
+const scoreWindStargazing = (v: number) =>
+  clamp(interpolate(v, [[0, 100], [5, 100], [10, 85], [15, 60], [20, 35], [25, 15], [35, 0]]));
+
+const scoreHumidityStargazing = (v: number) =>
+  clamp(interpolate(v, [[0, 100], [30, 100], [50, 90], [60, 70], [70, 50], [80, 25], [90, 10], [100, 0]]));
+
+const scoreCloudCover = (v: number) =>
+  clamp(interpolate(v, [[0, 100], [10, 95], [20, 80], [30, 60], [50, 35], [70, 15], [85, 5], [100, 0]]));
+
+const scoreVisibility = (v: number) =>
+  clamp(interpolate(v, [[1000, 0], [5000, 30], [10000, 60], [20000, 85], [40000, 100], [100000, 100]]));
+
 const WEATHER_CODE_SCORES: Record<number, number> = {
   0: 100, 1: 95, 2: 90, 3: 75, 45: 55, 48: 50, 51: 35, 53: 25, 55: 15, 56: 2, 57: 0,
   61: 15, 63: 8, 65: 2, 66: 0, 67: 0, 71: 15, 73: 5, 75: 2, 77: 8,
@@ -79,8 +96,18 @@ const WEATHER_CODE_SCORES_CYCLING: Record<number, number> = {
   80: 15, 81: 8, 82: 3, 85: 10, 86: 2, 95: 3, 96: 0, 99: 0,
 };
 
+const WEATHER_CODE_SCORES_STARGAZING: Record<number, number> = {
+  0: 100, 1: 90, 2: 60, 3: 20, 45: 5, 48: 5,
+  51: 5, 53: 2, 55: 0, 56: 0, 57: 0,
+  61: 2, 63: 0, 65: 0, 66: 0, 67: 0,
+  71: 5, 73: 2, 75: 0, 77: 2,
+  80: 5, 81: 2, 82: 0, 85: 2, 86: 0,
+  95: 0, 96: 0, 99: 0,
+};
+
 const scoreWeatherCode = (c: number) => WEATHER_CODE_SCORES[c] ?? 50;
 const scoreWeatherCodeCycling = (c: number) => WEATHER_CODE_SCORES_CYCLING[c] ?? 50;
+const scoreWeatherCodeStargazing = (c: number) => WEATHER_CODE_SCORES_STARGAZING[c] ?? 50;
 
 const WEIGHTS: Record<string, number> = {
   temperature: 0.25,
@@ -92,7 +119,55 @@ const WEIGHTS: Record<string, number> = {
   weather_code: 0.10,
 };
 
+const WEIGHTS_STARGAZING: Record<string, number> = {
+  cloud_cover: 0.35,
+  weather_code: 0.15,
+  temperature: 0.15,
+  wind_speed: 0.10,
+  humidity: 0.10,
+  precipitation_probability: 0.10,
+  visibility: 0.05,
+};
+
+export function computeDarkness(hourISO: string, dailyList: { date: string; sunrise: string; sunset: string }[]): { is_daylight: boolean; daylight_factor: number } {
+  const hdt = new Date(hourISO);
+  const dateStr = hourISO.slice(0, 10);
+  const day = dailyList.find(d => d.date === dateStr);
+  if (!day) return { is_daylight: false, daylight_factor: 0.05 };
+
+  const sr = new Date(day.sunrise).getTime();
+  const ss = new Date(day.sunset).getTime();
+  const ht = hdt.getTime();
+  const twilight = 30 * 60 * 1000;
+
+  // Deep night: >30 min past sunset or >30 min before sunrise
+  if (ht > ss + twilight || ht < sr - twilight) return { is_daylight: false, daylight_factor: 1.0 };
+  // Twilight: within 30 min of sunrise/sunset
+  if ((ht >= ss && ht <= ss + twilight) || (ht >= sr - twilight && ht <= sr)) return { is_daylight: false, daylight_factor: 0.3 };
+  if ((ht >= sr && ht <= sr + twilight) || (ht >= ss - twilight && ht <= ss)) return { is_daylight: true, daylight_factor: 0.3 };
+  // Daylight
+  return { is_daylight: true, daylight_factor: 0.05 };
+}
+
 export function computeScore(h: HourlyData, mode: Mode): ScoredHour {
+  if (mode === 'stargazing') {
+    const sub: Record<string, number> = {
+      cloud_cover: scoreCloudCover(h.cloud_cover ?? 50),
+      weather_code: scoreWeatherCodeStargazing(h.weather_code),
+      temperature: scoreTempStargazing(h.temperature),
+      wind_speed: scoreWindStargazing(h.wind_speed),
+      humidity: scoreHumidityStargazing(h.humidity),
+      precipitation_probability: scorePrecip(h.precipitation_probability),
+      visibility: scoreVisibility(h.visibility ?? 20000),
+    };
+    let composite = 0;
+    for (const k of Object.keys(WEIGHTS_STARGAZING)) composite += sub[k] * WEIGHTS_STARGAZING[k];
+    composite *= h.daylight_factor;
+    composite = Math.round(composite * 10) / 10;
+    const rating = composite >= 80 ? 'Excellent' : composite >= 65 ? 'Good' : composite >= 45 ? 'Fair' : 'Poor';
+    return { ...h, score: composite, rating };
+  }
+
   const scoreTemp = mode === 'cycling' ? scoreTempCycling : mode === 'running' ? scoreTempRunning : scoreTempWalking;
   const scoreWind = mode === 'cycling' ? scoreWindCycling : mode === 'running' ? scoreWindRunning : scoreWindWalking;
   const precipFn = mode === 'cycling' ? scorePrecipCycling : scorePrecip;
@@ -144,6 +219,8 @@ export interface OpenMeteoForecast {
     wind_speed_10m: number[];
     uv_index: number[];
     precipitation_probability: number[];
+    cloud_cover: number[];
+    visibility: number[];
   };
   daily: {
     time: string[];
@@ -183,7 +260,9 @@ export function computeScoreForHour(forecast: OpenMeteoForecast, targetTime: str
   if (idx === -1) return 50; // no data, neutral score
 
   const h = forecast.hourly;
-  const dl = computeDaylight(h.time[idx], dailyList);
+  const dl = mode === 'stargazing'
+    ? computeDarkness(h.time[idx], dailyList)
+    : computeDaylight(h.time[idx], dailyList);
   const hourData: HourlyData = {
     time: h.time[idx],
     temperature: h.temperature_2m[idx],
@@ -193,6 +272,8 @@ export function computeScoreForHour(forecast: OpenMeteoForecast, targetTime: str
     wind_speed: h.wind_speed_10m[idx],
     uv_index: h.uv_index[idx],
     precipitation_probability: h.precipitation_probability[idx],
+    cloud_cover: h.cloud_cover?.[idx] ?? 50,
+    visibility: h.visibility?.[idx] ?? 20000,
     ...dl,
   };
 
@@ -227,8 +308,11 @@ export function findBestAlternative(
     if (tMs === targetDate.getTime()) continue; // skip same slot
 
     const h = forecast.hourly;
-    const dl = computeDaylight(t, dailyList);
-    if (!dl.is_daylight) continue;
+    const dl = mode === 'stargazing'
+      ? computeDarkness(t, dailyList)
+      : computeDaylight(t, dailyList);
+    if (mode !== 'stargazing' && !dl.is_daylight) continue;
+    if (mode === 'stargazing' && dl.is_daylight) continue;
 
     const hourData: HourlyData = {
       time: t,
@@ -239,6 +323,8 @@ export function findBestAlternative(
       wind_speed: h.wind_speed_10m[i],
       uv_index: h.uv_index[i],
       precipitation_probability: h.precipitation_probability[i],
+      cloud_cover: h.cloud_cover?.[i] ?? 50,
+      visibility: h.visibility?.[i] ?? 20000,
       ...dl,
     };
 

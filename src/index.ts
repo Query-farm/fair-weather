@@ -41,7 +41,7 @@ async function handleSchedule(request: Request, env: Env): Promise<Response> {
   try {
     const body = await request.json() as {
       email: string;
-      mode: 'running' | 'walking' | 'cycling';
+      mode: 'running' | 'walking' | 'cycling' | 'stargazing';
       scheduledTime: string;
       durationMinutes: number;
       lat: number;
@@ -99,7 +99,7 @@ async function handleGetICS(id: string, env: Env): Promise<Response> {
 
     const event = await resp.json() as any;
     const ics = generateICS({
-      title: `${event.mode === 'running' ? 'Run' : event.mode === 'cycling' ? 'Ride' : 'Walk'} — ${event.locationName}`,
+      title: `${event.mode === 'running' ? 'Run' : event.mode === 'cycling' ? 'Ride' : event.mode === 'stargazing' ? 'Star Gaze' : 'Walk'} — ${event.locationName}`,
       startTime: event.scheduledTime,
       durationMinutes: event.durationMinutes,
       description: `Score: ${event.initialScore}/100`,
