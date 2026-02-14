@@ -137,6 +137,26 @@ header h1 {
 .location-pill.open .location-chevron { transform: rotate(180deg); }
 .location-pill .location-name { font-weight: 500; font-size: 0.85rem; }
 
+/* Share button */
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  margin-top: 6px;
+  margin-left: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.share-btn:hover { border-color: var(--text-dim); color: var(--text); }
+.share-btn.copied { color: var(--green); border-color: var(--green); }
+
 /* Location search */
 .location-search-row {
   display: flex;
@@ -1107,6 +1127,12 @@ body.mode-stargazing .hour-entry:not(.dark):not(.twilight):not(.past-hour-compac
         <polyline points="6 9 12 15 18 9"/>
       </svg>
     </div>
+    <button class="share-btn" id="share-btn" onclick="shareLocation()" title="Share this forecast">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 12v7a2 2 0 002 2h12a2 2 0 002-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+      </svg>
+      <span id="share-btn-text">Share</span>
+    </button>
     <div class="location-search" id="location-search">
       <div class="first-visit-prompt">Set your location to get started</div>
       <div class="location-search-row">
@@ -1190,6 +1216,7 @@ body.mode-stargazing .hour-entry:not(.dark):not(.twilight):not(.past-hour-compac
 const DEFAULT_LOCATION = { lat: 37.6660, lon: -77.5064, tz: 'America/New_York', name: 'Glen Allen, VA' };
 const FORECAST_DAYS = 2;
 const HISTORY_HOURS = 2;
+const VALID_MODES = ['running', 'walking', 'cycling', 'stargazing', 'dog_walking'];
 
 function loadLocation() {
   try {
@@ -1202,7 +1229,32 @@ function saveLocation(loc) {
   localStorage.setItem('rp_location', JSON.stringify(loc));
 }
 
-let location_ = loadLocation();
+// ── URL params (shareable links) ───────────────────────────────────
+function parseUrlParams() {
+  const p = new URLSearchParams(window.location.search);
+  const lat = parseFloat(p.get('lat'));
+  const lon = parseFloat(p.get('lon'));
+  if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
+  const tz = p.get('tz') || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const name = p.get('name') || `${lat.toFixed(3)}, ${lon.toFixed(3)}`;
+  const mode = VALID_MODES.includes(p.get('mode')) ? p.get('mode') : null;
+  return { location: { lat, lon, tz, name }, mode };
+}
+
+function updateShareUrl() {
+  const params = new URLSearchParams();
+  params.set('lat', location_.lat.toFixed(3));
+  params.set('lon', location_.lon.toFixed(3));
+  params.set('tz', location_.tz);
+  if (location_.name) params.set('name', location_.name);
+  params.set('mode', activeMode);
+  history.replaceState(null, '', '?' + params.toString());
+}
+
+const _urlParams = parseUrlParams();
+
+let location_ = _urlParams ? _urlParams.location : loadLocation();
+if (_urlParams) saveLocation(location_);
 let LAT = location_.lat;
 let LON = location_.lon;
 let TZ = location_.tz;
@@ -1273,6 +1325,7 @@ function selectLocation(idx) {
   TZ = location_.tz;
   saveLocation(location_);
   updateLocationDisplay();
+  updateShareUrl();
   document.getElementById('location-search').classList.remove('active', 'first-visit');
   document.getElementById('location-display').classList.remove('open');
   document.getElementById('location-results').classList.remove('visible');
@@ -1295,7 +1348,8 @@ document.addEventListener('click', e => {
 });
 
 // ── Activity mode ──────────────────────────────────────────────────
-let activeMode = localStorage.getItem('rp_mode') || 'running';
+let activeMode = (_urlParams && _urlParams.mode) || localStorage.getItem('rp_mode') || 'running';
+if (_urlParams && _urlParams.mode) localStorage.setItem('rp_mode', activeMode);
 
 function setMode(mode) {
   activeMode = mode;
@@ -1306,6 +1360,7 @@ function setMode(mode) {
   document.getElementById('btn-stargazing').classList.toggle('active', mode === 'stargazing');
   document.getElementById('btn-dog_walking').classList.toggle('active', mode === 'dog_walking');
   document.body.classList.toggle('mode-stargazing', mode === 'stargazing');
+  updateShareUrl();
   if (rawHourlyData) processAndRender();
 }
 // Apply saved mode to toggle buttons on load
@@ -2715,6 +2770,7 @@ async function useMyLocation() {
         TZ = tz;
         saveLocation(location_);
         updateLocationDisplay();
+        updateShareUrl();
         document.getElementById('location-search').classList.remove('active', 'first-visit');
         document.getElementById('location-display').classList.remove('open');
         document.getElementById('location-results').classList.remove('visible');
@@ -2743,7 +2799,26 @@ async function useMyLocation() {
 // ── First-visit prompt ─────────────────────────────────────────────
 const isFirstVisit = !localStorage.getItem('rp_location');
 
+// ── Share ──────────────────────────────────────────────────────────
+function shareLocation() {
+  const url = window.location.href;
+  const btn = document.getElementById('share-btn');
+  const txt = document.getElementById('share-btn-text');
+
+  if (navigator.share) {
+    navigator.share({ title: `Fair Weather — ${location_.name}`, url }).catch(() => {});
+    return;
+  }
+
+  navigator.clipboard.writeText(url).then(() => {
+    btn.classList.add('copied');
+    txt.textContent = 'Copied!';
+    setTimeout(() => { btn.classList.remove('copied'); txt.textContent = 'Share'; }, 2000);
+  }).catch(() => {});
+}
+
 // ── Boot ───────────────────────────────────────────────────────────
+updateShareUrl();
 fetchTimeline();
 setInterval(fetchTimeline, 15 * 60 * 1000);
 
