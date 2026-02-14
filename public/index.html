@@ -224,6 +224,11 @@ header h1 {
   margin-bottom: 20px;
   flex-wrap: wrap;
 }
+.controls-row .duration-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
 /* Mode toggle */
 .mode-toggle {
@@ -234,7 +239,7 @@ header h1 {
   padding: 4px;
 }
 .mode-btn {
-  padding: 8px 12px;
+  padding: 6px 10px;
   border: none;
   border-radius: 8px;
   font-family: inherit;
@@ -993,14 +998,16 @@ header h1 {
       <button class="mode-btn" id="btn-walking" onclick="setMode('walking')">&#x1F6B6; Walking</button>
       <button class="mode-btn" id="btn-cycling" onclick="setMode('cycling')">&#x1F6B4; Cycling</button>
     </div>
-    <span class="duration-label">Duration</span>
-    <select class="duration-select" id="duration-select" onchange="setDuration(this.value)">
-      <option value="30" selected>30 min</option>
-      <option value="45">45 min</option>
-      <option value="60">1 hr</option>
-      <option value="90">1.5 hr</option>
-      <option value="120">2 hr</option>
-    </select>
+    <div class="duration-group">
+      <span class="duration-label">Duration</span>
+      <select class="duration-select" id="duration-select" onchange="setDuration(this.value)">
+        <option value="30" selected>30 min</option>
+        <option value="45">45 min</option>
+        <option value="60">1 hr</option>
+        <option value="90">1.5 hr</option>
+        <option value="120">2 hr</option>
+      </select>
+    </div>
   </div>
 
   <div id="countdown-banner" class="countdown-banner" style="display:none">
@@ -1226,13 +1233,13 @@ const scorePrecip = v => clamp(interpolate(v, [[0,100],[5,100],[15,80],[30,55],[
 const scorePrecipCycling = v => clamp(interpolate(v, [[0,100],[5,100],[20,70],[40,35],[60,15],[80,5],[100,0]]));
 
 const WEATHER_CODE_SCORES = {
-  0:100,1:95,2:90,3:75,45:55,48:50,51:35,53:25,55:15,56:12,57:5,
-  61:15,63:8,65:2,66:5,67:2,71:15,73:5,75:2,77:8,
-  80:15,81:8,82:2,85:8,86:2,95:5,96:2,99:0
+  0:100,1:95,2:90,3:75,45:55,48:50,51:35,53:25,55:15,56:2,57:0,
+  61:15,63:8,65:2,66:0,67:0,71:15,73:5,75:2,77:8,
+  80:15,81:8,82:2,85:8,86:2,95:5,96:0,99:0
 };
 const WEATHER_CODE_SCORES_CYCLING = {
-  0:100,1:95,2:90,3:75,45:40,48:35,51:35,53:25,55:15,56:15,57:5,
-  61:15,63:8,65:3,66:3,67:2,71:20,73:8,75:0,77:10,
+  0:100,1:95,2:90,3:75,45:15,48:10,51:35,53:25,55:15,56:2,57:0,
+  61:15,63:8,65:3,66:0,67:0,71:20,73:8,75:0,77:10,
   80:15,81:8,82:3,85:10,86:2,95:3,96:0,99:0
 };
 const scoreWeatherCode = c => WEATHER_CODE_SCORES[c] ?? 50;
@@ -1384,6 +1391,9 @@ function getWeatherAlerts(h, mode) {
   // High wind warning (>20 mph)
   else if (h.wind_speed >= 20)
     alerts.push({ icon: '\uD83D\uDCA8', text: `High wind ${Math.round(h.wind_speed)} mph`, severe: false });
+  // Cycling: low visibility in fog
+  if (mode === 'cycling' && [45, 48].includes(h.weather_code))
+    alerts.push({ icon: '\uD83C\uDF2B\uFE0F', text: 'Low visibility — fog', severe: true });
   // Cycling: wet roads
   if (mode === 'cycling' && [51,53,55,56,57,61,63,65,66,67,80,81,82].includes(h.weather_code))
     alerts.push({ icon: '\uD83D\uDEE3\uFE0F', text: 'Wet roads', severe: false });
@@ -1936,7 +1946,7 @@ function hourEntryHTML(h) {
         <span class="detail-item"><span class="detail-icon">\uD83C\uDF21</span> ${h.feels_like}\u00B0F feels like</span>
         <span class="detail-item"><span class="detail-icon">\uD83D\uDCA8</span> ${h.wind_speed} mph</span>
         ${h.precipitation_probability > 0 ? `<span class="detail-item"><span class="detail-icon">\uD83C\uDF27</span> ${h.precipitation_probability}%</span>` : ''}
-        <span class="detail-item"><span class="detail-icon">\u2600\uFE0F</span> UV ${h.uv_index}</span>
+        ${h.is_daylight ? `<span class="detail-item"><span class="detail-icon">\u2600\uFE0F</span> UV ${h.uv_index}</span>` : ''}
         ${aqiBadge}
         ${trafficBadge}
       </div>${alertsHTML}
