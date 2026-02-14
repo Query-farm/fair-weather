@@ -18,7 +18,7 @@ export interface ScoredHour extends HourlyData {
   rating: 'Excellent' | 'Good' | 'Fair' | 'Poor';
 }
 
-export type Mode = 'running' | 'walking';
+export type Mode = 'running' | 'walking' | 'cycling';
 
 function clamp(v: number, lo = 0, hi = 100): number {
   return Math.max(lo, Math.min(hi, v));
@@ -55,16 +55,32 @@ const scoreWindRunning = (v: number) =>
 const scoreWindWalking = (v: number) =>
   clamp(interpolate(v, [[0, 100], [6, 100], [12, 75], [20, 45], [30, 15], [45, 0]]));
 
+const scoreTempCycling = (v: number) =>
+  clamp(interpolate(v, [[15, 0], [25, 10], [35, 30], [45, 60], [55, 100], [75, 100], [85, 65], [90, 40], [100, 10], [110, 0]]));
+
+const scoreWindCycling = (v: number) =>
+  clamp(interpolate(v, [[0, 100], [5, 100], [8, 80], [12, 55], [15, 35], [18, 20], [22, 8], [30, 0]]));
+
 const scorePrecip = (v: number) =>
-  clamp(interpolate(v, [[0, 100], [10, 100], [30, 75], [60, 45], [80, 15], [100, 0]]));
+  clamp(interpolate(v, [[0, 100], [5, 100], [15, 80], [30, 55], [50, 30], [70, 12], [100, 0]]));
+
+const scorePrecipCycling = (v: number) =>
+  clamp(interpolate(v, [[0, 100], [5, 100], [20, 70], [40, 35], [60, 15], [80, 5], [100, 0]]));
 
 const WEATHER_CODE_SCORES: Record<number, number> = {
-  0: 100, 1: 95, 2: 90, 3: 75, 45: 55, 48: 50, 51: 50, 53: 40, 55: 30, 56: 25, 57: 15,
-  61: 30, 63: 15, 65: 5, 66: 10, 67: 5, 71: 25, 73: 10, 75: 5, 77: 15,
-  80: 30, 81: 15, 82: 5, 85: 15, 86: 5, 95: 5, 96: 2, 99: 0,
+  0: 100, 1: 95, 2: 90, 3: 75, 45: 55, 48: 50, 51: 35, 53: 25, 55: 15, 56: 12, 57: 5,
+  61: 15, 63: 8, 65: 2, 66: 5, 67: 2, 71: 15, 73: 5, 75: 2, 77: 8,
+  80: 15, 81: 8, 82: 2, 85: 8, 86: 2, 95: 5, 96: 2, 99: 0,
+};
+
+const WEATHER_CODE_SCORES_CYCLING: Record<number, number> = {
+  0: 100, 1: 95, 2: 90, 3: 75, 45: 40, 48: 35, 51: 35, 53: 25, 55: 15, 56: 15, 57: 5,
+  61: 15, 63: 8, 65: 3, 66: 3, 67: 2, 71: 20, 73: 8, 75: 0, 77: 10,
+  80: 15, 81: 8, 82: 3, 85: 10, 86: 2, 95: 3, 96: 0, 99: 0,
 };
 
 const scoreWeatherCode = (c: number) => WEATHER_CODE_SCORES[c] ?? 50;
+const scoreWeatherCodeCycling = (c: number) => WEATHER_CODE_SCORES_CYCLING[c] ?? 50;
 
 const WEIGHTS: Record<string, number> = {
   temperature: 0.25,
@@ -77,16 +93,18 @@ const WEIGHTS: Record<string, number> = {
 };
 
 export function computeScore(h: HourlyData, mode: Mode): ScoredHour {
-  const scoreTemp = mode === 'running' ? scoreTempRunning : scoreTempWalking;
-  const scoreWind = mode === 'running' ? scoreWindRunning : scoreWindWalking;
+  const scoreTemp = mode === 'cycling' ? scoreTempCycling : mode === 'running' ? scoreTempRunning : scoreTempWalking;
+  const scoreWind = mode === 'cycling' ? scoreWindCycling : mode === 'running' ? scoreWindRunning : scoreWindWalking;
+  const precipFn = mode === 'cycling' ? scorePrecipCycling : scorePrecip;
+  const weatherCodeFn = mode === 'cycling' ? scoreWeatherCodeCycling : scoreWeatherCode;
   const sub: Record<string, number> = {
     temperature: scoreTemp(h.temperature),
     feels_like: scoreTemp(h.feels_like),
     humidity: scoreHumidity(h.humidity),
     uv_index: scoreUV(h.uv_index),
     wind_speed: scoreWind(h.wind_speed),
-    precipitation_probability: scorePrecip(h.precipitation_probability),
-    weather_code: scoreWeatherCode(h.weather_code),
+    precipitation_probability: precipFn(h.precipitation_probability),
+    weather_code: weatherCodeFn(h.weather_code),
   };
   let composite = 0;
   for (const k of Object.keys(WEIGHTS)) composite += sub[k] * WEIGHTS[k];

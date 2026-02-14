@@ -1,7 +1,7 @@
 {
   "name": "Fair Weather",
   "short_name": "Fair Weather",
-  "description": "Find your perfect window for outdoor running and walking.",
+  "description": "Find your perfect window for outdoor running, walking, and cycling.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",

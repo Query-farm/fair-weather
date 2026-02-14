@@ -2,7 +2,7 @@ import { generateICS } from './ics';
 
 export interface DeteriorationData {
   email: string;
-  mode: 'running' | 'walking';
+  mode: 'running' | 'walking' | 'cycling';
   scheduledTime: string;
   durationMinutes: number;
   locationName: string;
@@ -31,7 +31,7 @@ function ratingLabel(score: number): string {
 }
 
 export async function sendDeteriorationEmail(data: DeteriorationData, apiKey: string): Promise<void> {
-  const activity = data.mode === 'running' ? 'run' : 'walk';
+  const activity = data.mode === 'running' ? 'run' : data.mode === 'cycling' ? 'ride' : 'walk';
   const subject = `Weather alert: your ${activity} conditions have worsened`;
 
   let altSection = '';
@@ -44,7 +44,7 @@ export async function sendDeteriorationEmail(data: DeteriorationData, apiKey: st
 <p>An updated calendar invite is attached for the better time slot.</p>`;
 
     const ics = generateICS({
-      title: `${data.mode === 'running' ? 'Run' : 'Walk'} — ${data.locationName}`,
+      title: `${data.mode === 'running' ? 'Run' : data.mode === 'cycling' ? 'Ride' : 'Walk'} — ${data.locationName}`,
       startTime: data.alternative.time,
       durationMinutes: data.durationMinutes,
       description: `Rescheduled: Score ${data.alternative.score}/100`,

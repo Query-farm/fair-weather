@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Fair Weather — Best Time to Run or Walk Outside</title>
-<meta name="description" content="Find your perfect window for outdoor running and walking based on real-time weather scoring. Hourly forecasts scored for temperature, wind, humidity, UV, and rain.">
+<title>Fair Weather — Best Time to Run, Walk, or Ride Outside</title>
+<meta name="description" content="Find your perfect window for outdoor running, walking, and cycling based on real-time weather scoring. Hourly forecasts scored for temperature, wind, humidity, UV, and rain.">
 <link rel="canonical" href="https://fair-weather.query-farm.services/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://fair-weather.query-farm.services/">
 <meta property="og:title" content="Fair Weather">
-<meta property="og:description" content="Find your perfect window for outdoor running and walking.">
+<meta property="og:description" content="Find your perfect window for outdoor running, walking, and cycling.">
 <meta property="og:image" content="https://fair-weather.query-farm.services/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Fair Weather">
-<meta name="twitter:description" content="Find your perfect window for outdoor running and walking.">
+<meta name="twitter:description" content="Find your perfect window for outdoor running, walking, and cycling.">
 <meta name="twitter:image" content="https://fair-weather.query-farm.services/og-image.png">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -31,7 +31,7 @@
   "@type": "WebApplication",
   "name": "Fair Weather",
   "url": "https://fair-weather.query-farm.services/",
-  "description": "Find your perfect window for outdoor running and walking based on real-time weather scoring.",
+  "description": "Find your perfect window for outdoor running, walking, and cycling based on real-time weather scoring.",
   "applicationCategory": "WeatherApplication",
   "operatingSystem": "Any",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
@@ -234,7 +234,7 @@ header h1 {
   padding: 4px;
 }
 .mode-btn {
-  padding: 8px 16px;
+  padding: 8px 12px;
   border: none;
   border-radius: 8px;
   font-family: inherit;
@@ -913,6 +913,22 @@ header h1 {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
 }
+
+/* Traffic badge (cycling) */
+.traffic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.traffic-light { background: rgba(34,197,94,0.15); color: #22c55e; }
+.traffic-moderate { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.traffic-heavy { background: rgba(249,115,22,0.15); color: #f97316; }
+.traffic-rush { background: rgba(239,68,68,0.15); color: #ef4444; }
 </style>
 </head>
 <body>
@@ -975,6 +991,7 @@ header h1 {
     <div class="mode-toggle">
       <button class="mode-btn active" id="btn-running" onclick="setMode('running')">&#x1F3C3; Running</button>
       <button class="mode-btn" id="btn-walking" onclick="setMode('walking')">&#x1F6B6; Walking</button>
+      <button class="mode-btn" id="btn-cycling" onclick="setMode('cycling')">&#x1F6B4; Cycling</button>
     </div>
     <span class="duration-label">Duration</span>
     <select class="duration-select" id="duration-select" onchange="setDuration(this.value)">
@@ -1140,11 +1157,13 @@ function setMode(mode) {
   localStorage.setItem('rp_mode', mode);
   document.getElementById('btn-running').classList.toggle('active', mode === 'running');
   document.getElementById('btn-walking').classList.toggle('active', mode === 'walking');
+  document.getElementById('btn-cycling').classList.toggle('active', mode === 'cycling');
   if (rawHourlyData) processAndRender();
 }
 // Apply saved mode to toggle buttons on load
 document.getElementById('btn-running').classList.toggle('active', activeMode === 'running');
 document.getElementById('btn-walking').classList.toggle('active', activeMode === 'walking');
+document.getElementById('btn-cycling').classList.toggle('active', activeMode === 'cycling');
 
 // ── Duration ───────────────────────────────────────────────────────
 let activeDuration = parseInt(localStorage.getItem('rp_duration'), 10) || 30;
@@ -1196,33 +1215,71 @@ function interpolate(value, bp) {
 
 const scoreTempRunning = v => clamp(interpolate(v, [[10,0],[20,15],[30,45],[40,75],[50,100],[60,100],[70,75],[80,45],[90,15],[100,0]]));
 const scoreTempWalking = v => clamp(interpolate(v, [[15,0],[25,10],[35,30],[45,60],[55,100],[70,100],[80,70],[85,45],[95,15],[105,0]]));
+const scoreTempCycling = v => clamp(interpolate(v, [[15,0],[25,10],[35,30],[45,60],[55,100],[75,100],[85,65],[90,40],[100,10],[110,0]]));
 
 const scoreHumidity = v => clamp(interpolate(v, [[0,70],[30,100],[50,100],[65,75],[80,45],[85,15],[100,0]]));
 const scoreUV = v => clamp(interpolate(v, [[0,100],[2,100],[5,75],[7,45],[8,15],[11,0]]));
 const scoreWindRunning = v => clamp(interpolate(v, [[0,100],[8,100],[15,75],[25,45],[35,15],[50,0]]));
 const scoreWindWalking = v => clamp(interpolate(v, [[0,100],[6,100],[12,75],[20,45],[30,15],[45,0]]));
-const scorePrecip = v => clamp(interpolate(v, [[0,100],[10,100],[30,75],[60,45],[80,15],[100,0]]));
+const scoreWindCycling = v => clamp(interpolate(v, [[0,100],[5,100],[8,80],[12,55],[15,35],[18,20],[22,8],[30,0]]));
+const scorePrecip = v => clamp(interpolate(v, [[0,100],[5,100],[15,80],[30,55],[50,30],[70,12],[100,0]]));
+const scorePrecipCycling = v => clamp(interpolate(v, [[0,100],[5,100],[20,70],[40,35],[60,15],[80,5],[100,0]]));
 
 const WEATHER_CODE_SCORES = {
-  0:100,1:95,2:90,3:75,45:55,48:50,51:50,53:40,55:30,56:25,57:15,
-  61:30,63:15,65:5,66:10,67:5,71:25,73:10,75:5,77:15,
-  80:30,81:15,82:5,85:15,86:5,95:5,96:2,99:0
+  0:100,1:95,2:90,3:75,45:55,48:50,51:35,53:25,55:15,56:12,57:5,
+  61:15,63:8,65:2,66:5,67:2,71:15,73:5,75:2,77:8,
+  80:15,81:8,82:2,85:8,86:2,95:5,96:2,99:0
+};
+const WEATHER_CODE_SCORES_CYCLING = {
+  0:100,1:95,2:90,3:75,45:40,48:35,51:35,53:25,55:15,56:15,57:5,
+  61:15,63:8,65:3,66:3,67:2,71:20,73:8,75:0,77:10,
+  80:15,81:8,82:3,85:10,86:2,95:3,96:0,99:0
 };
 const scoreWeatherCode = c => WEATHER_CODE_SCORES[c] ?? 50;
+const scoreWeatherCodeCycling = c => WEATHER_CODE_SCORES_CYCLING[c] ?? 50;
 
 const WEIGHTS = {temperature:0.25,feels_like:0.20,humidity:0.15,uv_index:0.10,wind_speed:0.10,precipitation_probability:0.10,weather_code:0.10};
 
+// ── Traffic heuristic (cycling only) ────────────────────────────────
+function getTrafficPenalty(hourISO) {
+  const d = new Date(hourISO);
+  const hour = d.getHours();
+  const dow = d.getDay(); // 0=Sun, 6=Sat
+  const isWeekend = dow === 0 || dow === 6;
+  if (isWeekend) {
+    if (hour >= 11 && hour < 15) return 2;
+    return 0;
+  }
+  // Weekday
+  if (hour >= 7 && hour < 9) return 10;
+  if (hour >= 9 && hour < 11) return 4;
+  if (hour >= 11 && hour < 15) return 3;
+  if (hour >= 16 && hour < 19) return 12;
+  if (hour >= 19 && hour < 20) return 5;
+  return 0;
+}
+
+function trafficLabel(penalty) {
+  if (penalty >= 10) return { text: 'Rush hour', cls: 'traffic-rush' };
+  if (penalty >= 5) return { text: 'Heavy traffic', cls: 'traffic-heavy' };
+  if (penalty >= 3) return { text: 'Moderate traffic', cls: 'traffic-moderate' };
+  if (penalty >= 1) return { text: 'Light traffic', cls: 'traffic-light' };
+  return null;
+}
+
 function computeScore(h, mode) {
-  const scoreTemp = mode === 'running' ? scoreTempRunning : scoreTempWalking;
-  const scoreWind = mode === 'running' ? scoreWindRunning : scoreWindWalking;
+  const scoreTemp = mode === 'cycling' ? scoreTempCycling : mode === 'running' ? scoreTempRunning : scoreTempWalking;
+  const scoreWind = mode === 'cycling' ? scoreWindCycling : mode === 'running' ? scoreWindRunning : scoreWindWalking;
+  const precipFn = mode === 'cycling' ? scorePrecipCycling : scorePrecip;
+  const weatherCodeFn = mode === 'cycling' ? scoreWeatherCodeCycling : scoreWeatherCode;
   const sub = {
     temperature: scoreTemp(h.temperature),
     feels_like: scoreTemp(h.feels_like),
     humidity: scoreHumidity(h.humidity),
     uv_index: scoreUV(h.uv_index),
     wind_speed: scoreWind(h.wind_speed),
-    precipitation_probability: scorePrecip(h.precipitation_probability),
-    weather_code: scoreWeatherCode(h.weather_code),
+    precipitation_probability: precipFn(h.precipitation_probability),
+    weather_code: weatherCodeFn(h.weather_code),
   };
   let composite = 0;
   for (const k of Object.keys(WEIGHTS)) composite += sub[k] * WEIGHTS[k];
@@ -1234,9 +1291,18 @@ function computeScore(h, mode) {
     composite = Math.max(0, composite - aqiPenalty);
     composite = Math.round(composite * 10) / 10;
   }
+  // Traffic penalty (cycling only)
+  let trafficPen = 0;
+  if (mode === 'cycling') {
+    trafficPen = getTrafficPenalty(h.time);
+    if (trafficPen > 0) {
+      composite = Math.max(0, composite - trafficPen);
+      composite = Math.round(composite * 10) / 10;
+    }
+  }
   const rating = composite >= 80 ? 'Excellent' : composite >= 65 ? 'Good' : composite >= 45 ? 'Fair' : 'Poor';
   const clothing = getClothing(h.feels_like, h.wind_speed, h.precipitation_probability, h.weather_code, mode);
-  return { ...h, sub_scores: sub, score: composite, rating, weather_description: WMO_DESC[h.weather_code] || 'Unknown', clothing };
+  return { ...h, sub_scores: sub, score: composite, rating, weather_description: WMO_DESC[h.weather_code] || 'Unknown', clothing, trafficPenalty: trafficPen };
 }
 
 // ── Clothing recommendations ───────────────────────────────────────
@@ -1246,7 +1312,18 @@ function getClothing(feelsLike, wind, precipProb, weatherCode, mode) {
   const isCold = feelsLike < 20;
   let layers = [];
   let icon = '';
-  if (mode === 'running') {
+  if (mode === 'cycling') {
+    if (feelsLike < 10) { layers = ['Heavy cycling jacket','thermal base layer','cycling gloves','balaclava','shoe covers']; icon = '\uD83E\uDDE5'; }
+    else if (feelsLike < 20) { layers = ['Cycling jacket','fleece layer','cycling gloves','shoe covers']; icon = '\uD83E\uDDE5'; }
+    else if (feelsLike < 35) { layers = ['Cycling jacket','long sleeve jersey','arm warmers','light cycling gloves']; icon = '\uD83E\uDDE5'; }
+    else if (feelsLike < 45) { layers = ['Light cycling jacket','long sleeve jersey','arm warmers']; icon = '\uD83E\uDDE4'; }
+    else if (feelsLike < 55) { layers = ['Long sleeve jersey','arm warmers','bib shorts']; icon = '\uD83D\uDC55'; }
+    else if (feelsLike < 65) { layers = ['Short sleeve jersey','bib shorts']; icon = '\uD83D\uDC55'; }
+    else { layers = ['Light jersey','bib shorts']; icon = '\uD83E\uDE73'; }
+    if (isWet) layers.push('waterproof cycling jacket');
+    if (isSnowy && !isCold) layers.push('waterproof shell');
+    if (wind > 20) layers.push('windproof vest');
+  } else if (mode === 'running') {
     if (feelsLike < 10) { layers = ['Heavy winter jacket','thermal base layer','insulated gloves','hat']; icon = '\uD83E\uDDE5'; }
     else if (feelsLike < 20) { layers = ['Heavy running jacket','fleece layer','gloves','hat']; icon = '\uD83E\uDDE5'; }
     else if (feelsLike < 35) { layers = ['Running jacket','long sleeve base','light gloves']; icon = '\uD83E\uDDE5'; }
@@ -1254,6 +1331,9 @@ function getClothing(feelsLike, wind, precipProb, weatherCode, mode) {
     else if (feelsLike < 55) { layers = ['Long sleeve shirt or half-zip']; icon = '\uD83D\uDC55'; }
     else if (feelsLike < 65) { layers = ['T-shirt','shorts']; icon = '\uD83D\uDC55'; }
     else { layers = ['Singlet or light tee','shorts']; icon = '\uD83E\uDE73'; }
+    if (isWet) layers.push('rain jacket');
+    if (isSnowy && !isCold) layers.push('waterproof shell');
+    if (wind > 20) layers.push('windbreaker');
   } else {
     if (feelsLike < 10) { layers = ['Heavy winter coat','insulated layers','insulated gloves','hat','scarf']; icon = '\uD83E\uDDE5'; }
     else if (feelsLike < 20) { layers = ['Heavy winter coat','fleece mid-layer','warm gloves','hat']; icon = '\uD83E\uDDE5'; }
@@ -1262,10 +1342,10 @@ function getClothing(feelsLike, wind, precipProb, weatherCode, mode) {
     else if (feelsLike < 55) { layers = ['Light jacket or fleece']; icon = '\uD83E\uDDE4'; }
     else if (feelsLike < 65) { layers = ['Light layer or sweater']; icon = '\uD83D\uDC55'; }
     else { layers = ['T-shirt','comfortable shorts']; icon = '\uD83E\uDE73'; }
+    if (isWet) layers.push('rain jacket');
+    if (isSnowy && !isCold) layers.push('waterproof shell');
+    if (wind > 20) layers.push('windbreaker');
   }
-  if (isWet) layers.push('rain jacket');
-  if (isSnowy && !isCold) layers.push('waterproof shell');
-  if (wind > 20) layers.push('windbreaker');
   return { text: layers.join(', '), icon };
 }
 
@@ -1281,7 +1361,7 @@ function aqiLabel(aqi) {
 }
 
 // ── Weather alerts ──────────────────────────────────────────────────
-function getWeatherAlerts(h) {
+function getWeatherAlerts(h, mode) {
   const alerts = [];
   // Thunderstorms
   if ([95, 96, 99].includes(h.weather_code))
@@ -1298,9 +1378,24 @@ function getWeatherAlerts(h) {
   // Extreme wind (>30 mph)
   if (h.wind_speed >= 30)
     alerts.push({ icon: '\uD83D\uDCA8', text: `Dangerous wind ${Math.round(h.wind_speed)} mph`, severe: true });
+  // Crosswind danger (cycling, 20+ mph, below the shared 30 mph severe threshold)
+  else if (mode === 'cycling' && h.wind_speed >= 20)
+    alerts.push({ icon: '\uD83D\uDCA8', text: `Crosswind danger ${Math.round(h.wind_speed)} mph`, severe: true });
   // High wind warning (>20 mph)
   else if (h.wind_speed >= 20)
     alerts.push({ icon: '\uD83D\uDCA8', text: `High wind ${Math.round(h.wind_speed)} mph`, severe: false });
+  // Cycling: wet roads
+  if (mode === 'cycling' && [51,53,55,56,57,61,63,65,66,67,80,81,82].includes(h.weather_code))
+    alerts.push({ icon: '\uD83D\uDEE3\uFE0F', text: 'Wet roads', severe: false });
+  // Cycling: ice risk on road surface
+  if (mode === 'cycling' && ([56,57,66,67].includes(h.weather_code) || ([61,63,65,80,81,82,51,53,55].includes(h.weather_code) && h.temperature <= 32)))
+    alerts.push({ icon: '\u2744\uFE0F', text: 'Ice risk on road surface', severe: true });
+  // Cycling: rush hour traffic
+  if (mode === 'cycling') {
+    const tp = getTrafficPenalty(h.time);
+    if (tp >= 10)
+      alerts.push({ icon: '\uD83D\uDE97', text: 'Rush hour traffic', severe: false });
+  }
   // Extreme heat
   if (h.feels_like >= 100)
     alerts.push({ icon: '\uD83E\uDD75', text: `Extreme heat ${Math.round(h.feels_like)}\u00B0F`, severe: true });
@@ -1411,7 +1506,7 @@ function getSelectedScheduleTime() {
 
 function updateScheduleModalInfo() {
   if (!scheduleTarget) return;
-  const activity = activeMode === 'running' ? 'Run' : 'Walk';
+  const activity = activeMode === 'running' ? 'Run' : activeMode === 'cycling' ? 'Ride' : 'Walk';
   const d = new Date(getSelectedScheduleTime());
   const timeStr = d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
   document.getElementById('schedule-modal-info').innerHTML =
@@ -1485,7 +1580,7 @@ async function confirmSchedule() {
 
   const scheduledTime = getSelectedScheduleTime();
 
-  const activity = activeMode === 'running' ? 'Run' : 'Walk';
+  const activity = activeMode === 'running' ? 'Run' : activeMode === 'cycling' ? 'Ride' : 'Walk';
   const title = `${activity} \u2014 ${location_.name}`;
   const desc = `Score: ${scheduleTarget.score}/100 (${scheduleTarget.rating})`;
 
@@ -1811,8 +1906,14 @@ function hourEntryHTML(h) {
     ? `<span class="detail-item"><span class="aqi-badge ${aqi.cls}">\uD83C\uDF2B\uFE0F AQI ${h.aqi} ${aqi.text}</span></span>`
     : '';
 
+  // Traffic badge (cycling only)
+  const tLabel = (activeMode === 'cycling' && h.trafficPenalty > 0) ? trafficLabel(h.trafficPenalty) : null;
+  const trafficBadge = tLabel
+    ? `<span class="detail-item"><span class="traffic-badge ${tLabel.cls}">\uD83D\uDE97 ${tLabel.text}</span></span>`
+    : '';
+
   // Weather alerts
-  const alerts = getWeatherAlerts(h);
+  const alerts = getWeatherAlerts(h, activeMode);
   const alertsHTML = alerts.length > 0
     ? `<div class="weather-alerts">${alerts.map(a =>
         `<span class="alert-badge${a.severe ? '' : ' alert-warning'}">${a.icon} ${a.text}</span>`
@@ -1837,6 +1938,7 @@ function hourEntryHTML(h) {
         ${h.precipitation_probability > 0 ? `<span class="detail-item"><span class="detail-icon">\uD83C\uDF27</span> ${h.precipitation_probability}%</span>` : ''}
         <span class="detail-item"><span class="detail-icon">\u2600\uFE0F</span> UV ${h.uv_index}</span>
         ${aqiBadge}
+        ${trafficBadge}
       </div>${alertsHTML}
       <div class="hour-card-footer">
         <div class="clothing-rec"><span class="clothing-icon">${h.clothing.icon}</span> ${h.clothing.text}</div>
@@ -1882,8 +1984,8 @@ function setupCountdown() {
   banner.style.display = 'block';
   banner.className = 'countdown-banner cb-' + curr.rating.toLowerCase();
   const rc = ratingClass(curr.rating);
-  const modeEmoji = activeMode === 'running' ? '\uD83C\uDFC3' : '\uD83D\uDEB6';
-  const modeLabel = activeMode === 'running' ? 'running' : 'walking';
+  const modeEmoji = activeMode === 'running' ? '\uD83C\uDFC3' : activeMode === 'cycling' ? '\uD83D\uDEB4' : '\uD83D\uDEB6';
+  const modeLabel = activeMode === 'running' ? 'running' : activeMode === 'cycling' ? 'cycling' : 'walking';
   const durLabel = activeDuration >= 60 ? `${activeDuration / 60}hr` : `${activeDuration}min`;
   const weatherEmoji = WEATHER_EMOJI[curr.weather_code] || '\uD83C\uDF21';
   document.getElementById('cb-emoji').textContent = `${modeEmoji} ${weatherEmoji}`;
@@ -1893,7 +1995,7 @@ function setupCountdown() {
   document.getElementById('current-score').innerHTML = `${scoreRingSVG(curr.score, curr.rating, 32)}<span>${curr.weather_description} \u00B7 Feels like ${curr.feels_like}\u00B0F${aqiText}</span>`;
 
   // Show alerts in countdown banner
-  const currentAlerts = getWeatherAlerts(curr);
+  const currentAlerts = getWeatherAlerts(curr, activeMode);
   let alertBannerEl = document.getElementById('cb-alerts');
   if (!alertBannerEl) {
     alertBannerEl = document.createElement('div');
