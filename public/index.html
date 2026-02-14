@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Fair Weather — Best Time to Run, Walk, Ride, or Stargaze Outside</title>
+<title>Fair Weather — Best Time to Run, Walk, Ride, Stargaze, or Walk Your Dog Outside</title>
 <meta name="description" content="Find your perfect window for outdoor running, walking, cycling, and stargazing based on real-time weather scoring. Hourly forecasts scored for temperature, wind, humidity, UV, rain, and cloud cover.">
 <link rel="canonical" href="https://fair-weather.query-farm.services/">
 <meta property="og:type" content="website">
@@ -1060,8 +1060,12 @@ body.mode-stargazing .hour-entry:not(.dark):not(.twilight):not(.past-hour-compac
 
 @media (max-width: 480px) {
   .mode-toggle {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .mode-toggle .mode-btn {
+    flex: 0 0 calc(33.33% - 4px);
   }
 }
 </style>
@@ -1128,6 +1132,7 @@ body.mode-stargazing .hour-entry:not(.dark):not(.twilight):not(.past-hour-compac
       <button class="mode-btn" id="btn-walking" onclick="setMode('walking')">&#x1F6B6; Walking</button>
       <button class="mode-btn" id="btn-cycling" onclick="setMode('cycling')">&#x1F6B4; Cycling</button>
       <button class="mode-btn" id="btn-stargazing" onclick="setMode('stargazing')">&#x1F52D; Stargazing</button>
+      <button class="mode-btn" id="btn-dog_walking" onclick="setMode('dog_walking')">&#x1F415; Dog Walk</button>
     </div>
     <div class="duration-group">
       <span class="duration-label">Duration</span>
@@ -1299,6 +1304,7 @@ function setMode(mode) {
   document.getElementById('btn-walking').classList.toggle('active', mode === 'walking');
   document.getElementById('btn-cycling').classList.toggle('active', mode === 'cycling');
   document.getElementById('btn-stargazing').classList.toggle('active', mode === 'stargazing');
+  document.getElementById('btn-dog_walking').classList.toggle('active', mode === 'dog_walking');
   document.body.classList.toggle('mode-stargazing', mode === 'stargazing');
   if (rawHourlyData) processAndRender();
 }
@@ -1307,6 +1313,7 @@ document.getElementById('btn-running').classList.toggle('active', activeMode ===
 document.getElementById('btn-walking').classList.toggle('active', activeMode === 'walking');
 document.getElementById('btn-cycling').classList.toggle('active', activeMode === 'cycling');
 document.getElementById('btn-stargazing').classList.toggle('active', activeMode === 'stargazing');
+document.getElementById('btn-dog_walking').classList.toggle('active', activeMode === 'dog_walking');
 document.body.classList.toggle('mode-stargazing', activeMode === 'stargazing');
 
 // ── Duration ───────────────────────────────────────────────────────
@@ -1616,11 +1623,32 @@ const WEATHER_CODE_SCORES_STARGAZING = {
   95:0,96:0,99:0
 };
 
+const scoreTempDogWalking = v => clamp(interpolate(v, [[10,5],[20,20],[30,45],[40,70],[50,100],[65,100],[75,70],[82,40],[90,10],[100,0]]));
+const scoreUVDogWalking = v => clamp(interpolate(v, [[0,100],[2,100],[4,75],[6,40],[8,10],[10,0]]));
+const scorePavement = v => clamp(interpolate(v, [[30,60],[40,80],[50,100],[77,100],[100,65],[115,35],[125,10],[135,0]]));
+
+function estimatePavementTemp(airTempF, uvIndex, cloudCover) {
+  const maxBoost = 50;
+  const boost = (uvIndex / 11) * (1 - (cloudCover ?? 50) / 100) * maxBoost;
+  return airTempF + boost;
+}
+
+const WEATHER_CODE_SCORES_DOG_WALKING = {
+  0:100,1:95,2:90,3:75,45:55,48:50,
+  51:35,53:25,55:15,56:0,57:0,
+  61:15,63:8,65:2,66:0,67:0,
+  71:5,73:0,75:0,77:2,
+  80:15,81:8,82:2,85:2,86:0,
+  95:5,96:0,99:0
+};
+
 const scoreWeatherCode = c => WEATHER_CODE_SCORES[c] ?? 50;
 const scoreWeatherCodeCycling = c => WEATHER_CODE_SCORES_CYCLING[c] ?? 50;
 const scoreWeatherCodeStargazing = c => WEATHER_CODE_SCORES_STARGAZING[c] ?? 50;
+const scoreWeatherCodeDogWalking = c => WEATHER_CODE_SCORES_DOG_WALKING[c] ?? 50;
 
 const WEIGHTS = {temperature:0.25,feels_like:0.20,humidity:0.15,uv_index:0.10,wind_speed:0.10,precipitation_probability:0.10,weather_code:0.10};
+const WEIGHTS_DOG_WALKING = {temperature:0.15,feels_like:0.10,pavement_temperature:0.20,humidity:0.10,uv_index:0.15,wind_speed:0.05,precipitation_probability:0.10,weather_code:0.15};
 const WEIGHTS_STARGAZING = {cloud_cover:0.35,weather_code:0.15,temperature:0.15,wind_speed:0.10,humidity:0.10,precipitation_probability:0.10,visibility:0.05};
 
 // ── Traffic heuristic (cycling only) ────────────────────────────────
@@ -1670,6 +1698,32 @@ function computeScore(h, mode) {
     return { ...h, sub_scores: sub, score: composite, rating, weather_description: WMO_DESC[h.weather_code] || 'Unknown', clothing, trafficPenalty: 0 };
   }
 
+  if (mode === 'dog_walking') {
+    const pavementTemp = estimatePavementTemp(h.temperature, h.uv_index, h.cloud_cover);
+    const sub = {
+      temperature: scoreTempDogWalking(h.temperature),
+      feels_like: scoreTempDogWalking(h.feels_like),
+      pavement_temperature: scorePavement(pavementTemp),
+      humidity: scoreHumidity(h.humidity),
+      uv_index: scoreUVDogWalking(h.uv_index),
+      wind_speed: scoreWindWalking(h.wind_speed),
+      precipitation_probability: scorePrecip(h.precipitation_probability),
+      weather_code: scoreWeatherCodeDogWalking(h.weather_code),
+    };
+    let composite = 0;
+    for (const k of Object.keys(WEIGHTS_DOG_WALKING)) composite += sub[k] * WEIGHTS_DOG_WALKING[k];
+    composite *= h.daylight_factor;
+    composite = Math.round(composite * 10) / 10;
+    if (h.aqi != null && h.aqi > 100) {
+      const aqiPenalty = interpolate(h.aqi, [[100,0],[150,5],[200,12],[300,25],[500,40]]);
+      composite = Math.max(0, composite - aqiPenalty);
+      composite = Math.round(composite * 10) / 10;
+    }
+    const rating = composite >= 80 ? 'Excellent' : composite >= 65 ? 'Good' : composite >= 45 ? 'Fair' : 'Poor';
+    const clothing = getClothing(h.feels_like, h.wind_speed, h.precipitation_probability, h.weather_code, mode, h.humidity, pavementTemp, h.uv_index);
+    return { ...h, pavement_temp: pavementTemp, sub_scores: sub, score: composite, rating, weather_description: WMO_DESC[h.weather_code] || 'Unknown', clothing, trafficPenalty: 0 };
+  }
+
   const scoreTemp = mode === 'cycling' ? scoreTempCycling : mode === 'running' ? scoreTempRunning : scoreTempWalking;
   const scoreWind = mode === 'cycling' ? scoreWindCycling : mode === 'running' ? scoreWindRunning : scoreWindWalking;
   const precipFn = mode === 'cycling' ? scorePrecipCycling : scorePrecip;
@@ -1708,13 +1762,30 @@ function computeScore(h, mode) {
 }
 
 // ── Clothing recommendations ───────────────────────────────────────
-function getClothing(feelsLike, wind, precipProb, weatherCode, mode, humidity) {
+function getClothing(feelsLike, wind, precipProb, weatherCode, mode, humidity, pavementTemp, uvIndex) {
   const isWet = precipProb > 30 || [51,53,55,56,57,61,63,65,66,67,80,81,82].includes(weatherCode);
   const isSnowy = [71,73,75,77,85,86].includes(weatherCode);
   const isCold = feelsLike < 20;
   let layers = [];
   let icon = '';
-  if (mode === 'cycling') {
+  if (mode === 'dog_walking') {
+    icon = '\uD83D\uDC15';
+    if (feelsLike < 10) { layers = ['Heavy winter coat','insulated layers','insulated gloves','hat','scarf']; }
+    else if (feelsLike < 20) { layers = ['Heavy winter coat','fleece mid-layer','warm gloves','hat']; }
+    else if (feelsLike < 32) { layers = ['Heavy jacket','sweater layer','gloves','hat']; }
+    else if (feelsLike < 45) { layers = ['Medium jacket','light gloves optional']; }
+    else if (feelsLike < 55) { layers = ['Light jacket or fleece']; }
+    else if (feelsLike < 65) { layers = ['Light layer or sweater']; }
+    else { layers = ['T-shirt','comfortable shorts']; }
+    if (isWet) { layers.push('rain jacket'); layers.push('towel for paws'); }
+    if (isSnowy) layers.push('dog booties (cold)');
+    if (wind > 20) layers.push('windbreaker');
+    if (feelsLike >= 85 || (pavementTemp != null && pavementTemp >= 110)) layers.push('dog booties (heat)');
+    if (feelsLike >= 80) layers.push('dog cooling vest');
+    if (feelsLike < 20) layers.push('dog coat');
+    if (uvIndex != null && uvIndex >= 6) layers.push('bring water for dog');
+    return { text: layers.join(', '), icon };
+  } else if (mode === 'cycling') {
     if (feelsLike < 10) { layers = ['Heavy cycling jacket','thermal base layer','cycling gloves','balaclava','shoe covers']; icon = '\uD83E\uDDE5'; }
     else if (feelsLike < 20) { layers = ['Cycling jacket','fleece layer','cycling gloves','shoe covers']; icon = '\uD83E\uDDE5'; }
     else if (feelsLike < 35) { layers = ['Cycling jacket','long sleeve jersey','arm warmers','light cycling gloves']; icon = '\uD83E\uDDE5'; }
@@ -1839,6 +1910,26 @@ function getWeatherAlerts(h, mode) {
     if (moonInfo.illumination >= 75)
       alerts.push({ icon: moonInfo.emoji, text: `Bright moon (${moonInfo.illumination}%) may wash out faint objects`, severe: false });
   }
+  // Dog walking-specific alerts
+  if (mode === 'dog_walking') {
+    if (h.pavement_temp >= 135)
+      alerts.push({ icon: '\uD83D\uDC3E', text: `Pavement ~${Math.round(h.pavement_temp)}\u00B0F \u2014 burn risk!`, severe: true });
+    else if (h.pavement_temp >= 125)
+      alerts.push({ icon: '\uD83D\uDC3E', text: `Pavement ~${Math.round(h.pavement_temp)}\u00B0F \u2014 burns in 60s`, severe: true });
+    else if (h.pavement_temp >= 110)
+      alerts.push({ icon: '\uD83D\uDC3E', text: `Hot pavement ~${Math.round(h.pavement_temp)}\u00B0F \u2014 use booties`, severe: false });
+
+    if ([71,73,75,77,85,86].includes(h.weather_code))
+      alerts.push({ icon: '\uD83D\uDC3E', text: 'Snow \u2014 paw protection recommended', severe: false });
+    if ([56,57,66,67].includes(h.weather_code))
+      alerts.push({ icon: '\uD83D\uDC3E', text: 'Ice/freezing \u2014 paw danger', severe: true });
+
+    if (h.temperature <= 35 && h.precipitation_probability > 20)
+      alerts.push({ icon: '\uD83E\uDDC2', text: 'Road salt likely \u2014 rinse paws after', severe: false });
+
+    if (h.feels_like >= 85)
+      alerts.push({ icon: '\uD83E\uDD75', text: 'Heat stress risk for dogs', severe: h.feels_like >= 95 });
+  }
   return alerts;
 }
 
@@ -1956,7 +2047,7 @@ function getSelectedScheduleTime() {
 
 function updateScheduleModalInfo() {
   if (!scheduleTarget) return;
-  const activity = activeMode === 'running' ? 'Run' : activeMode === 'cycling' ? 'Ride' : activeMode === 'stargazing' ? 'Star Gaze' : 'Walk';
+  const activity = activeMode === 'running' ? 'Run' : activeMode === 'cycling' ? 'Ride' : activeMode === 'stargazing' ? 'Star Gaze' : activeMode === 'dog_walking' ? 'Dog Walk' : 'Walk';
   const d = new Date(getSelectedScheduleTime());
   const timeStr = d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
   document.getElementById('schedule-modal-info').innerHTML =
@@ -2054,7 +2145,7 @@ async function confirmSchedule() {
 
   const scheduledTime = getSelectedScheduleTime();
 
-  const activity = activeMode === 'running' ? 'Run' : activeMode === 'cycling' ? 'Ride' : activeMode === 'stargazing' ? 'Star Gaze' : 'Walk';
+  const activity = activeMode === 'running' ? 'Run' : activeMode === 'cycling' ? 'Ride' : activeMode === 'stargazing' ? 'Star Gaze' : activeMode === 'dog_walking' ? 'Dog Walk' : 'Walk';
   const title = `${activity} \u2014 ${location_.name}`;
   const desc = `Score: ${scheduleTarget.score}/100 (${scheduleTarget.rating})`;
 
@@ -2474,6 +2565,7 @@ function hourEntryHTML(h) {
         ${activeMode === 'stargazing' ? `<span class="detail-item"><span class="detail-icon">\u2601\uFE0F</span> ${h.cloud_cover ?? 50}% clouds</span>` : ''}
         ${activeMode === 'stargazing' ? `<span class="detail-item"><span class="detail-icon">\uD83D\uDC41</span> ${((h.visibility ?? 20000) / 1000).toFixed(0)}km vis</span>` : ''}
         ${activeMode === 'stargazing' && !h.is_daylight ? (() => { const mi = getMoonPhaseInfo(h.time); return `<span class="detail-item">${mi.emoji} ${mi.name} ${mi.illumination}%</span>`; })() : ''}
+        ${activeMode === 'dog_walking' && h.pavement_temp != null ? `<span class="detail-item"><span class="detail-icon">\uD83D\uDC3E</span> ~${Math.round(h.pavement_temp)}\u00B0F pavement</span>` : ''}
         ${aqiBadge}
         ${trafficBadge}
       </div>${alertsHTML}
@@ -2521,8 +2613,8 @@ function setupCountdown() {
   banner.style.display = 'block';
   banner.className = 'countdown-banner cb-' + curr.rating.toLowerCase();
   const rc = ratingClass(curr.rating);
-  const modeEmoji = activeMode === 'running' ? '\uD83C\uDFC3' : activeMode === 'cycling' ? '\uD83D\uDEB4' : activeMode === 'stargazing' ? '\uD83D\uDD2D' : '\uD83D\uDEB6';
-  const modeLabel = activeMode === 'running' ? 'running' : activeMode === 'cycling' ? 'cycling' : activeMode === 'stargazing' ? 'stargazing' : 'walking';
+  const modeEmoji = activeMode === 'running' ? '\uD83C\uDFC3' : activeMode === 'cycling' ? '\uD83D\uDEB4' : activeMode === 'stargazing' ? '\uD83D\uDD2D' : activeMode === 'dog_walking' ? '\uD83D\uDC15' : '\uD83D\uDEB6';
+  const modeLabel = activeMode === 'running' ? 'running' : activeMode === 'cycling' ? 'cycling' : activeMode === 'stargazing' ? 'stargazing' : activeMode === 'dog_walking' ? 'dog walking' : 'walking';
   const durLabel = activeDuration >= 60 ? `${activeDuration / 60}hr` : `${activeDuration}min`;
   const weatherEmoji = getWeatherEmoji(curr.weather_code, curr.is_daylight, curr.time);
   document.getElementById('cb-emoji').textContent = `${modeEmoji} ${weatherEmoji}`;

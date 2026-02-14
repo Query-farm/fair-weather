@@ -20,7 +20,7 @@ export interface ScoredHour extends HourlyData {
   rating: 'Excellent' | 'Good' | 'Fair' | 'Poor';
 }
 
-export type Mode = 'running' | 'walking' | 'cycling' | 'stargazing';
+export type Mode = 'running' | 'walking' | 'cycling' | 'stargazing' | 'dog_walking';
 
 function clamp(v: number, lo = 0, hi = 100): number {
   return Math.max(lo, Math.min(hi, v));
@@ -105,9 +105,34 @@ const WEATHER_CODE_SCORES_STARGAZING: Record<number, number> = {
   95: 0, 96: 0, 99: 0,
 };
 
+const scoreTempDogWalking = (v: number) =>
+  clamp(interpolate(v, [[10,5],[20,20],[30,45],[40,70],[50,100],[65,100],[75,70],[82,40],[90,10],[100,0]]));
+
+const scoreUVDogWalking = (v: number) =>
+  clamp(interpolate(v, [[0,100],[2,100],[4,75],[6,40],[8,10],[10,0]]));
+
+const scorePavement = (v: number) =>
+  clamp(interpolate(v, [[30,60],[40,80],[50,100],[77,100],[100,65],[115,35],[125,10],[135,0]]));
+
+function estimatePavementTemp(airTempF: number, uvIndex: number, cloudCover: number | undefined): number {
+  const maxBoost = 50;
+  const boost = (uvIndex / 11) * (1 - (cloudCover ?? 50) / 100) * maxBoost;
+  return airTempF + boost;
+}
+
+const WEATHER_CODE_SCORES_DOG_WALKING: Record<number, number> = {
+  0:100,1:95,2:90,3:75,45:55,48:50,
+  51:35,53:25,55:15,56:0,57:0,
+  61:15,63:8,65:2,66:0,67:0,
+  71:5,73:0,75:0,77:2,
+  80:15,81:8,82:2,85:2,86:0,
+  95:5,96:0,99:0
+};
+
 const scoreWeatherCode = (c: number) => WEATHER_CODE_SCORES[c] ?? 50;
 const scoreWeatherCodeCycling = (c: number) => WEATHER_CODE_SCORES_CYCLING[c] ?? 50;
 const scoreWeatherCodeStargazing = (c: number) => WEATHER_CODE_SCORES_STARGAZING[c] ?? 50;
+const scoreWeatherCodeDogWalking = (c: number) => WEATHER_CODE_SCORES_DOG_WALKING[c] ?? 50;
 
 const WEIGHTS: Record<string, number> = {
   temperature: 0.25,
@@ -117,6 +142,17 @@ const WEIGHTS: Record<string, number> = {
   wind_speed: 0.10,
   precipitation_probability: 0.10,
   weather_code: 0.10,
+};
+
+const WEIGHTS_DOG_WALKING: Record<string, number> = {
+  temperature: 0.15,
+  feels_like: 0.10,
+  pavement_temperature: 0.20,
+  humidity: 0.10,
+  uv_index: 0.15,
+  wind_speed: 0.05,
+  precipitation_probability: 0.10,
+  weather_code: 0.15,
 };
 
 const WEIGHTS_STARGAZING: Record<string, number> = {
@@ -162,6 +198,26 @@ export function computeScore(h: HourlyData, mode: Mode): ScoredHour {
     };
     let composite = 0;
     for (const k of Object.keys(WEIGHTS_STARGAZING)) composite += sub[k] * WEIGHTS_STARGAZING[k];
+    composite *= h.daylight_factor;
+    composite = Math.round(composite * 10) / 10;
+    const rating = composite >= 80 ? 'Excellent' : composite >= 65 ? 'Good' : composite >= 45 ? 'Fair' : 'Poor';
+    return { ...h, score: composite, rating };
+  }
+
+  if (mode === 'dog_walking') {
+    const pavementTemp = estimatePavementTemp(h.temperature, h.uv_index, h.cloud_cover);
+    const sub: Record<string, number> = {
+      temperature: scoreTempDogWalking(h.temperature),
+      feels_like: scoreTempDogWalking(h.feels_like),
+      pavement_temperature: scorePavement(pavementTemp),
+      humidity: scoreHumidity(h.humidity),
+      uv_index: scoreUVDogWalking(h.uv_index),
+      wind_speed: scoreWindWalking(h.wind_speed),
+      precipitation_probability: scorePrecip(h.precipitation_probability),
+      weather_code: scoreWeatherCodeDogWalking(h.weather_code),
+    };
+    let composite = 0;
+    for (const k of Object.keys(WEIGHTS_DOG_WALKING)) composite += sub[k] * WEIGHTS_DOG_WALKING[k];
     composite *= h.daylight_factor;
     composite = Math.round(composite * 10) / 10;
     const rating = composite >= 80 ? 'Excellent' : composite >= 65 ? 'Good' : composite >= 45 ? 'Fair' : 'Poor';
