@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Fair Weather — Best Time to Run, Walk, Ride, Stargaze, or Walk Your Dog Outside</title>
+<title>Fair Weather Friend — Best Time to Run, Walk, Ride, Stargaze, or Walk Your Dog Outside</title>
 <meta name="description" content="Find your perfect window for outdoor running, walking, cycling, and stargazing based on real-time weather scoring. Hourly forecasts scored for temperature, wind, humidity, UV, rain, and cloud cover.">
 <link rel="canonical" href="https://fair-weather.query-farm.services/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://fair-weather.query-farm.services/">
-<meta property="og:title" content="Fair Weather">
+<meta property="og:title" content="Fair Weather Friend">
 <meta property="og:description" content="Find your perfect window for outdoor running, walking, cycling, and stargazing.">
 <meta property="og:image" content="https://fair-weather.query-farm.services/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Fair Weather">
+<meta name="twitter:title" content="Fair Weather Friend">
 <meta name="twitter:description" content="Find your perfect window for outdoor running, walking, cycling, and stargazing.">
 <meta name="twitter:image" content="https://fair-weather.query-farm.services/og-image.png">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -24,12 +24,12 @@
 <meta name="theme-color" content="#0f172a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Fair Weather">
+<meta name="apple-mobile-web-app-title" content="Fair Weather Friend">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  "name": "Fair Weather",
+  "name": "Fair Weather Friend",
   "url": "https://fair-weather.query-farm.services/",
   "description": "Find your perfect window for outdoor running, walking, cycling, and stargazing based on real-time weather scoring.",
   "applicationCategory": "WeatherApplication",
@@ -1115,7 +1115,7 @@ body.mode-stargazing .hour-entry:not(.dark):not(.twilight):not(.past-hour-compac
         </linearGradient>
       </defs>
     </svg>
-    <h1>Fair Weather</h1>
+    <h1>Fair Weather Friend</h1>
     <p class="tagline">Find your perfect window</p>
     <div class="location-pill" id="location-display" onclick="toggleLocationSearch()">
       <svg class="location-pin-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
@@ -1261,7 +1261,7 @@ let TZ = location_.tz;
 
 function updateLocationDisplay() {
   document.getElementById('location-name').textContent = location_.name;
-  document.title = `Fair Weather — ${location_.name}`;
+  document.title = `Fair Weather Friend — ${location_.name}`;
 }
 updateLocationDisplay();
 
@@ -2059,7 +2059,7 @@ function generateICSBlob(title, startISO, durationMin, description, locationStr)
   const uid = crypto.randomUUID() + '@run-planner';
   const now = fmtDate(new Date().toISOString());
   const lines = [
-    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Fair Weather//EN',
+    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Fair Weather Friend//EN',
     'CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT',
     'UID:' + uid, 'DTSTAMP:' + now,
     'DTSTART:' + fmtDate(startISO),
@@ -2806,7 +2806,7 @@ function shareLocation() {
   const txt = document.getElementById('share-btn-text');
 
   if (navigator.share) {
-    navigator.share({ title: `Fair Weather — ${location_.name}`, url }).catch(() => {});
+    navigator.share({ title: `Fair Weather Friend — ${location_.name}`, url }).catch(() => {});
     return;
   }
 

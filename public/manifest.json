@@ -1,6 +1,6 @@
 {
-  "name": "Fair Weather",
-  "short_name": "Fair Weather",
+  "name": "Fair Weather Friend",
+  "short_name": "Fair Weather Friend",
   "description": "Find your perfect window for outdoor running, walking, cycling, and stargazing.",
   "start_url": "/",
   "display": "standalone",
